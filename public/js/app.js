@@ -204,6 +204,7 @@
     if (section === 'records') initRecordsSection();
     if (section === 'dashboard') initDashboardSection();
     if (section === 'financeiro') initFinanceiroSection();
+    if (section === 'pagamento') initPagamentoSection();
   }
 
   // ═══════════════════════════════════
@@ -1104,33 +1105,18 @@
     loadPaymentSummary();
   };
 
-  function openPaymentModal() {
-    if (modalPaymentDay) modalPaymentDay.classList.remove('hidden');
+  function initPagamentoSection() {
     try {
       updatePayDatesByPreset();
       loadPaymentSummary();
     } catch (err) {
-      console.error('Error in openPaymentModal:', err);
+      console.error('Error in initPagamentoSection:', err);
     }
   }
 
-  function closePaymentModal() {
-    if (modalPaymentDay) modalPaymentDay.classList.add('hidden');
-  }
-
-  window.openPaymentModal = openPaymentModal;
-  window.closePaymentModal = closePaymentModal;
-
-  if (btnNavPaymentDay) btnNavPaymentDay.addEventListener('click', openPaymentModal);
-  if (btnTriggerPaymentModal) btnTriggerPaymentModal.addEventListener('click', openPaymentModal);
-  if (btnClosePayModal) btnClosePayModal.addEventListener('click', closePaymentModal);
-  if (btnClosePayModalFoot) btnClosePayModalFoot.addEventListener('click', closePaymentModal);
-
-  if (modalPaymentDay) {
-    modalPaymentDay.addEventListener('click', (e) => {
-      if (e.target === modalPaymentDay) closePaymentModal();
-    });
-  }
+  window.initPagamentoSection = initPagamentoSection;
+  window.openPaymentModal = () => switchSection('pagamento');
+  window.closePaymentModal = () => switchSection('dashboard');
 
   if (payPeriodType) {
     payPeriodType.addEventListener('change', () => {

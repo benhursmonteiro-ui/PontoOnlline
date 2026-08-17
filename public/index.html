@@ -68,7 +68,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           <span>Financeiro</span>
         </button>
-        <button class="nav-btn admin-only hidden" id="btn-nav-payment-day" onclick="openPaymentModal()">
+        <button class="nav-btn admin-only hidden" data-section="pagamento" id="nav-pagamento">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
           <span>Dia de Pagamento</span>
         </button>
@@ -169,7 +169,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                 Ver Folhas de Ponto
               </button>
-              <button class="btn btn-success" onclick="openPaymentModal()">
+              <button class="btn btn-success" onclick="switchSection('pagamento')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                 Dia de Pagamento
               </button>
@@ -561,7 +561,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
               Exportar PDF
             </button>
-            <button class="btn btn-success" id="btn-trigger-payment-modal" onclick="openPaymentModal()">
+            <button class="btn btn-success" id="btn-trigger-payment-modal" onclick="switchSection('pagamento')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               Dia de Pagamento
             </button>
@@ -585,6 +585,87 @@
             </thead>
             <tbody id="records-tbody">
               <tr><td colspan="5" class="empty-state">Nenhum registro encontrado</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ Section: Dia de Pagamento (Admin) ════════ -->
+    <section id="section-pagamento" class="section">
+      <div class="section-header">
+        <h2>Dia de Pagamento — Fechamento de Folha</h2>
+        <p class="section-desc">Cálculo de diárias, dias trabalhados e pagamentos por período</p>
+      </div>
+
+      <div class="records-container">
+        <!-- Controls: Period selector & Date filters -->
+        <div class="filters glass">
+          <div class="filter-group">
+            <label for="pay-period-type">Período de Pagamento</label>
+            <select id="pay-period-type">
+              <option value="weekly">Semanal (7 em 7 dias)</option>
+              <option value="fortnight" selected>Quinzena (15 em 15 dias)</option>
+              <option value="monthly">Mensal (Mês Completo)</option>
+              <option value="custom">Personalizado (Datas livres)</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="pay-start-date">Data Início</label>
+            <input type="date" id="pay-start-date">
+          </div>
+
+          <div class="filter-group">
+            <label for="pay-end-date">Data Fim</label>
+            <input type="date" id="pay-end-date">
+          </div>
+
+          <div class="filter-actions-group">
+            <button class="btn btn-primary" id="btn-recalculate-pay">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              Calcular
+            </button>
+            <button type="button" class="btn btn-success" id="btn-export-payroll-pdf">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+              Exportar Relatório PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- Summary Totals -->
+        <div class="summary-cards pay-summary-cards" id="pay-summary-cards">
+          <div class="summary-card">
+            <div class="summary-stat-label">Total Colaboradores</div>
+            <div class="summary-stat-value" id="pay-total-employees">0</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-stat-label">Total de Diárias (Dias)</div>
+            <div class="summary-stat-value" id="pay-total-days">0 dias</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-stat-label">Total a Pagar (R$)</div>
+            <div class="summary-stat-value currency" id="pay-total-amount">R$ 0,00</div>
+          </div>
+        </div>
+
+        <!-- Table of Payments -->
+        <div class="table-wrapper glass">
+          <table class="records-table">
+            <thead>
+              <tr>
+                <th>Colaborador</th>
+                <th>Local</th>
+                <th>Valor/Hora</th>
+                <th>Dias Trabalhados</th>
+                <th>Horas Totais</th>
+                <th>Total a Pagar</th>
+                <th>Forma / Chave PIX</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="pay-tbody">
+              <tr><td colspan="8" class="empty-state">Nenhum cálculo realizado</td></tr>
             </tbody>
           </table>
         </div>
@@ -741,100 +822,7 @@
       </form>
     </div>
   </div>
-  <!-- ════════ Modal: Dia de Pagamento ════════ -->
-  <div class="modal-overlay hidden" id="modal-payment-day">
-    <div class="modal-card modal-card-xl glass animate-scale-in">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <div class="modal-icon" style="background: rgba(34, 197, 94, 0.15); color: #22c55e; border-color: rgba(34, 197, 94, 0.3);">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          </div>
-          <div>
-            <h3>Dia de Pagamento — Fechamento de Folha</h3>
-            <p class="modal-subtitle">Cálculo de diárias, dias trabalhados e pagamentos por período</p>
-          </div>
-        </div>
-        <button class="modal-close" id="btn-close-pay-modal">&times;</button>
-      </div>
 
-      <div class="modal-body">
-        <!-- Controls: Period selector & Date filters -->
-        <div class="pay-controls-bar">
-          <div class="form-group" style="flex: 1; min-width: 180px;">
-            <label for="pay-period-type">Período de Pagamento</label>
-            <select id="pay-period-type">
-              <option value="weekly">Semanal (7 em 7 dias)</option>
-              <option value="fortnight" selected>Quinzena (15 em 15 dias)</option>
-              <option value="monthly">Mensal (Mês Completo)</option>
-              <option value="custom">Personalizado (Datas livres)</option>
-            </select>
-          </div>
-
-          <div class="form-group" style="flex: 1; min-width: 140px;">
-            <label for="pay-start-date">Data Início</label>
-            <input type="date" id="pay-start-date">
-          </div>
-
-          <div class="form-group" style="flex: 1; min-width: 140px;">
-            <label for="pay-end-date">Data Fim</label>
-            <input type="date" id="pay-end-date">
-          </div>
-
-          <div class="form-group" style="align-self: flex-end;">
-            <button class="btn btn-primary" id="btn-recalculate-pay">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-              Calcular
-            </button>
-          </div>
-        </div>
-
-        <!-- Summary Totals -->
-        <div class="summary-cards pay-summary-cards" id="pay-summary-cards">
-          <div class="summary-card">
-            <div class="summary-stat-label">Total Colaboradores</div>
-            <div class="summary-stat-value" id="pay-total-employees">0</div>
-          </div>
-          <div class="summary-card">
-            <div class="summary-stat-label">Total de Diárias (Dias)</div>
-            <div class="summary-stat-value" id="pay-total-days">0 dias</div>
-          </div>
-          <div class="summary-card">
-            <div class="summary-stat-label">Total a Pagar (R$)</div>
-            <div class="summary-stat-value currency" id="pay-total-amount">R$ 0,00</div>
-          </div>
-        </div>
-
-        <!-- Table of Payments -->
-        <div class="table-wrapper glass" style="max-height: 380px; overflow-y: auto;">
-          <table class="records-table">
-            <thead>
-              <tr>
-                <th>Colaborador</th>
-                <th>Local</th>
-                <th>Valor/Hora</th>
-                <th>Dias Trabalhados</th>
-                <th>Horas Totais</th>
-                <th>Total a Pagar</th>
-                <th>Forma / Chave PIX</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody id="pay-tbody">
-              <tr><td colspan="8" class="empty-state">Nenhum cálculo realizado</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="modal-actions" style="justify-content: space-between;">
-        <button type="button" class="btn btn-secondary" id="btn-close-pay-modal-foot">Fechar</button>
-        <button type="button" class="btn btn-success" id="btn-export-payroll-pdf">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
-          Exportar Relatório Geral (PDF)
-        </button>
-      </div>
-    </div>
-  </div>
 
   <script src="js/vendor/face-api.js"></script>
   <script src="js/api.js?v=21"></script>
