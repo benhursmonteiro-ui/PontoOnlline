@@ -2,7 +2,7 @@
    Ponto Facial — Service Worker (Offline Support)
    ═══════════════════════════════════════════════ */
 
-const CACHE_NAME = 'ponto-facial-v3';
+const CACHE_NAME = 'ponto-facial-v4';
 
 const ASSETS_TO_CACHE = [
   '/',
