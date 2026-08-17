@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sistema de ponto eletrônico online com reconhecimento facial. Registre entrada e saída de colaboradores automaticamente pela câmera.">
+  <title>Ponto Facial — Ponto Eletrônico por Reconhecimento Facial</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="stylesheet" href="css/styles.css?v=2">
+  <script src="js/vendor/jspdf.umd.min.js"></script>
+  <script src="js/vendor/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="loading-overlay hidden">
+    <div class="loader-content">
+      <div class="loader-ring"></div>
+      <p class="loader-text">Carregando modelos de IA...</p>
+      <p class="loader-sub">Isso pode levar alguns segundos na primeira vez</p>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="15" r="8" stroke="currentColor" stroke-width="2.5" fill="none"/>
+            <path d="M6 35c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <circle cx="20" cy="20" r="19" stroke="url(#grad1)" stroke-width="2" fill="none" opacity="0.4"/>
+            <defs><linearGradient id="grad1" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs>
+          </svg>
+        </div>
+        <div>
+          <h1 class="logo-title">Ponto Facial</h1>
+          <span class="logo-badge">AI-Powered</span>
+        </div>
+      </div>
+      <nav class="nav">
+        <button class="nav-btn active" data-section="clock" id="nav-clock">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Bater Ponto</span>
+        </button>
+        <!-- Admin: Dashboard -->
+        <button class="nav-btn admin-only hidden" data-section="dashboard" id="nav-dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-btn admin-only hidden" data-section="register" id="nav-register">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+          <span>Cadastrar Colaborador</span>
+        </button>
+        <button class="nav-btn admin-only hidden" data-section="locations" id="nav-locations">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>Locais de Trabalho</span>
+        </button>
+        <button class="nav-btn admin-only hidden" data-section="records" id="nav-records">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <span>Folhas de Ponto</span>
+        </button>
+        <button class="nav-btn admin-only hidden" data-section="financeiro" id="nav-financeiro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span>Financeiro</span>
+        </button>
+        <button class="nav-btn admin-only hidden" id="btn-nav-payment-day" onclick="openPaymentModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          <span>Dia de Pagamento</span>
+        </button>
+      </nav>
+      <div class="header-right">
+        <div class="clock-display" id="header-clock"></div>
+        <button class="btn btn-secondary btn-sm" id="btn-admin-login-trigger">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span>Área Admin</span>
+        </button>
+        <div class="admin-user-badge hidden" id="admin-user-badge">
+          <span class="badge badge-admin">ADM</span>
+          <button class="btn btn-icon btn-secondary btn-sm" id="btn-change-pass-trigger" title="Alterar Senha do Admin">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+          <button class="btn btn-danger btn-sm" id="btn-admin-logout" title="Sair do Modo Administrador">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span>Sair</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">    <!-- ════════ Section: Dashboard (Admin) ════════ -->
+    <section id="section-dashboard" class="section">
+      <div class="section-header">
+        <h2>Dashboard Administrativo</h2>
+        <p class="section-desc">Visão geral do sistema — colaboradores, registros de hoje e situação financeira</p>
+      </div>
+      <div class="dashboard-grid">
+        <!-- KPI Cards -->
+        <div class="dash-kpi-row">
+          <div class="dash-kpi-card glass">
+            <div class="dash-kpi-icon" style="background: rgba(99,102,241,0.15); color: #818cf8;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div>
+              <p class="dash-kpi-label">Total Colaboradores</p>
+              <p class="dash-kpi-value" id="dash-total-employees">—</p>
+            </div>
+          </div>
+          <div class="dash-kpi-card glass">
+            <div class="dash-kpi-icon" style="background: rgba(34,197,94,0.15); color: #22c55e;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div>
+              <p class="dash-kpi-label">Registros Hoje</p>
+              <p class="dash-kpi-value" id="dash-today-records">—</p>
+            </div>
+          </div>
+          <div class="dash-kpi-card glass">
+            <div class="dash-kpi-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div>
+              <p class="dash-kpi-label">Locais Ativos</p>
+              <p class="dash-kpi-value" id="dash-total-locations">—</p>
+            </div>
+          </div>
+          <div class="dash-kpi-card glass" style="border-color: rgba(34,197,94,0.3);">
+            <div class="dash-kpi-icon" style="background: rgba(34,197,94,0.15); color: #22c55e;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div>
+              <p class="dash-kpi-label">Total a Pagar (Mês)</p>
+              <p class="dash-kpi-value" id="dash-month-payroll" style="color: #22c55e;">—</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Records + Quick Actions -->
+        <div class="dash-content-row">
+          <div class="dash-recent glass">
+            <h3 class="dash-section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Registros de Hoje
+            </h3>
+            <div id="dash-today-list">
+              <p class="empty-state">Nenhum registro hoje</p>
+            </div>
+          </div>
+          <div class="dash-actions glass">
+            <h3 class="dash-section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><zap fill="currentColor" d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              Ações Rápidas
+            </h3>
+            <div class="dash-quick-actions">
+              <button class="btn btn-primary" onclick="switchSection('register')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                Cadastrar Colaborador
+              </button>
+              <button class="btn btn-secondary" onclick="switchSection('locations')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Gerenciar Locais
+              </button>
+              <button class="btn btn-secondary" onclick="switchSection('records')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Ver Folhas de Ponto
+              </button>
+              <button class="btn btn-success" onclick="openPaymentModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Dia de Pagamento
+              </button>
+              <button class="btn btn-secondary" onclick="switchSection('financeiro')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Ver Financeiro
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ Section: Financeiro (Admin) ════════ -->
+    <section id="section-financeiro" class="section">
+      <div class="section-header">
+        <h2>Financeiro</h2>
+        <p class="section-desc">Controle de entradas e saídas — receitas, despesas e saldo do período</p>
+      </div>
+
+      <div class="fin-layout">
+
+        <!-- Left: Add Transaction Form -->
+        <div class="fin-form-col glass">
+          <h3 class="dash-section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Novo Lançamento
+          </h3>
+          <form id="form-fin-transaction">
+            <div class="fin-type-toggle">
+              <button type="button" class="fin-type-btn fin-entrada active" id="btn-type-entrada" onclick="setFinType('entrada')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                Entrada
+              </button>
+              <button type="button" class="fin-type-btn fin-saida" id="btn-type-saida" onclick="setFinType('saida')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+                Saída
+              </button>
+            </div>
+            <input type="hidden" id="fin-type" value="entrada">
+
+            <div class="form-group">
+              <label for="fin-description">Descrição *</label>
+              <input type="text" id="fin-description" placeholder="Ex: Pagamento cliente / Salário funcionário" required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="fin-amount">Valor (R$) *</label>
+              <input type="number" id="fin-amount" step="0.01" min="0.01" placeholder="0,00" required>
+            </div>
+            <div class="form-group">
+              <label for="fin-category">Categoria</label>
+              <input type="text" id="fin-category" placeholder="Ex: Salário, Serviço, Material..." autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="fin-date">Data *</label>
+              <input type="date" id="fin-date" required>
+            </div>
+            <div id="fin-form-error" class="form-error hidden"></div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;" id="btn-fin-submit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Adicionar Lançamento
+            </button>
+          </form>
+        </div>
+
+        <!-- Right: Summary + Table -->
+        <div class="fin-main-col">
+
+          <!-- Period Filter -->
+          <div class="filters glass" style="margin-bottom: var(--sp-4);">
+            <div class="filter-group">
+              <label for="fin-period">Período</label>
+              <select id="fin-period">
+                <option value="week">Esta semana</option>
+                <option value="month" selected>Este mês</option>
+                <option value="custom">Personalizado</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="fin-start">Data Início</label>
+              <input type="date" id="fin-start">
+            </div>
+            <div class="filter-group">
+              <label for="fin-end">Data Fim</label>
+              <input type="date" id="fin-end">
+            </div>
+            <div class="filter-actions-group">
+              <button class="btn btn-secondary" id="btn-fin-filter">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                Filtrar
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI Cards -->
+          <div class="fin-kpi-row">
+            <div class="fin-kpi-card fin-kpi-entrada glass">
+              <div class="fin-kpi-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+              </div>
+              <div>
+                <p class="fin-kpi-label">Total Entradas</p>
+                <p class="fin-kpi-value" id="fin-total-entradas">R$ 0,00</p>
+              </div>
+            </div>
+            <div class="fin-kpi-card fin-kpi-saida glass">
+              <div class="fin-kpi-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+              </div>
+              <div>
+                <p class="fin-kpi-label">Total Saídas</p>
+                <p class="fin-kpi-value" id="fin-total-saidas">R$ 0,00</p>
+              </div>
+            </div>
+            <div class="fin-kpi-card fin-kpi-saldo glass" id="fin-kpi-saldo-card">
+              <div class="fin-kpi-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <div>
+                <p class="fin-kpi-label">Saldo</p>
+                <p class="fin-kpi-value" id="fin-saldo">R$ 0,00</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Transactions Table -->
+          <div class="table-wrapper glass">
+            <table class="records-table">
+              <thead>
+                <tr>
+                  <th>Tipo</th>
+                  <th>Descrição</th>
+                  <th>Categoria</th>
+                  <th>Data</th>
+                  <th>Valor</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="fin-tbody">
+                <tr><td colspan="6" class="empty-state">Selecione um período e clique em Filtrar</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ════════ Section: Bater Ponto ════════ -->
+
+    <section id="section-clock" class="section active">
+      <div class="section-header">
+        <h2>Bater Ponto</h2>
+        <p class="section-desc">Posicione seu rosto em frente à câmera para registrar automaticamente</p>
+      </div>
+
+      <div class="clock-container">
+
+        <div class="camera-wrapper">
+          <div class="camera-frame">
+            <video id="clock-video" autoplay muted playsinline></video>
+            <canvas id="clock-canvas"></canvas>
+            <div class="scan-line"></div>
+            <div class="corner corner-tl"></div>
+            <div class="corner corner-tr"></div>
+            <div class="corner corner-bl"></div>
+            <div class="corner corner-br"></div>
+          </div>
+          <div class="camera-status" id="clock-status">
+            <div class="status-dot"></div>
+            <span>Inicializando câmera...</span>
+          </div>
+        </div>
+
+        <div class="clock-info-panel">
+          <div class="info-card glass" id="recognition-card">
+            <div class="info-card-icon" id="recognition-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            </div>
+            <div>
+              <p class="info-label">Colaborador</p>
+              <p class="info-value" id="recognized-name">Aguardando...</p>
+            </div>
+          </div>
+
+          <div class="info-card glass">
+            <div class="info-card-icon accent">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div>
+              <p class="info-label">Próximo Registro</p>
+              <p class="info-value" id="next-record-type">—</p>
+            </div>
+          </div>
+
+          <div class="info-card glass">
+            <div class="info-card-icon success">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div>
+              <p class="info-label">Último Registro</p>
+              <p class="info-value" id="last-record-info">Nenhum registro hoje</p>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-lg" id="btn-manual-clock" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Registrar Ponto
+          </button>
+        </div>
+      </div>
+
+      <!-- Toast notification -->
+      <div class="toast" id="clock-toast">
+        <div class="toast-icon">✓</div>
+        <div class="toast-content">
+          <p class="toast-title" id="toast-title">Ponto Registrado!</p>
+          <p class="toast-message" id="toast-message"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ Section: Cadastrar Colaborador ════════ -->
+    <section id="section-register" class="section">
+      <div class="section-header">
+        <h2>Gestão de Colaboradores</h2>
+        <p class="section-desc">Cadastre novos colaboradores com foto, diária, PIX e local de trabalho</p>
+      </div>
+
+      <div class="register-container">
+        <div class="register-form glass">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="reg-name">Nome Completo</label>
+              <input type="text" id="reg-name" placeholder="Ex: Maria Silva" autocomplete="off" required>
+            </div>
+            <div class="form-group">
+              <label for="reg-role">Cargo / Função</label>
+              <input type="text" id="reg-role" placeholder="Ex: Desenvolvedora" autocomplete="off">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="reg-daily-rate">Valor da Diária (R$)</label>
+              <input type="number" id="reg-daily-rate" step="0.01" min="0" placeholder="Ex: 160.00">
+            </div>
+            <div class="form-group">
+              <label for="reg-location">Local de Trabalho</label>
+              <select id="reg-location">
+                <option value="">Selecione um local...</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="reg-payment-method">Forma de Pagamento</label>
+              <select id="reg-payment-method">
+                <option value="PIX">PIX</option>
+                <option value="Transferência">Transferência Bancária</option>
+                <option value="Dinheiro">Dinheiro Espécie</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="reg-pix-key-type">Tipo de Chave PIX</label>
+              <select id="reg-pix-key-type">
+                <option value="CPF">CPF</option>
+                <option value="Email">E-mail</option>
+                <option value="Telefone">Telefone</option>
+                <option value="Aleatória">Chave Aleatória</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="reg-pix-key">Chave PIX (para pagamento)</label>
+            <input type="text" id="reg-pix-key" placeholder="Ex: 123.456.789-00 ou email@pix.com" autocomplete="off">
+          </div>
+
+          <div class="camera-frame camera-frame-sm">
+            <video id="register-video" autoplay muted playsinline></video>
+            <canvas id="register-canvas"></canvas>
+            <div class="corner corner-tl"></div>
+            <div class="corner corner-tr"></div>
+            <div class="corner corner-bl"></div>
+            <div class="corner corner-br"></div>
+          </div>
+
+          <div class="capture-progress">
+            <div class="capture-dots">
+              <div class="capture-dot" id="dot-1"></div>
+              <div class="capture-dot" id="dot-2"></div>
+              <div class="capture-dot" id="dot-3"></div>
+            </div>
+            <p class="capture-text" id="capture-text">Clique para capturar 3 amostras</p>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn btn-secondary" id="btn-capture">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              Capturar Amostra
+            </button>
+            <button class="btn btn-primary" id="btn-register" disabled>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+              Cadastrar
+            </button>
+          </div>
+        </div>
+
+        <div class="employees-list glass">
+          <h3>Colaboradores Cadastrados</h3>
+          <div id="employees-container">
+            <p class="empty-state">Nenhum colaborador cadastrado</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ Section: Locais de Trabalho ════════ -->
+    <section id="section-locations" class="section">
+      <div class="section-header">
+        <h2>Locais de Trabalho (Obras / Filiais)</h2>
+        <p class="section-desc">Cadastre os locais onde os colaboradores realizam suas atividades</p>
+      </div>
+
+      <div class="register-container">
+        <div class="register-form glass">
+          <form id="form-add-location">
+            <div class="form-group">
+              <label for="loc-name">Nome do Local / Obra</label>
+              <input type="text" id="loc-name" placeholder="Ex: Obra Centro - Bloco B" required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label for="loc-address">Endereço / Observações</label>
+              <input type="text" id="loc-address" placeholder="Ex: Av. Paulista, 1000 - SP" autocomplete="off">
+            </div>
+            <button type="submit" class="btn btn-primary" id="btn-add-location">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Adicionar Local
+            </button>
+          </form>
+        </div>
+
+        <div class="employees-list glass">
+          <h3>Locais Cadastrados</h3>
+          <div id="locations-container">
+            <p class="empty-state">Nenhum local cadastrado</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ Section: Folhas de Ponto (Registros) ════════ -->
+    <section id="section-records" class="section">
+      <div class="section-header">
+        <h2>Folhas de Ponto & Relatórios</h2>
+        <p class="section-desc">Histórico completo, cálculo financeiro da diária e exportação em PDF</p>
+      </div>
+
+      <div class="records-container">
+        <div class="filters glass">
+          <div class="filter-group">
+            <label for="filter-employee">Colaborador</label>
+            <select id="filter-employee">
+              <option value="">Todos os Colaboradores</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filter-location">Local de Trabalho</label>
+            <select id="filter-location">
+              <option value="">Todos os Locais</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filter-start">Data Início</label>
+            <input type="date" id="filter-start">
+          </div>
+          <div class="filter-group">
+            <label for="filter-end">Data Fim</label>
+            <input type="date" id="filter-end">
+          </div>
+          <div class="filter-actions-group">
+            <button class="btn btn-secondary" id="btn-filter">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              Filtrar
+            </button>
+            <button class="btn btn-primary" id="btn-export-pdf">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+              Exportar PDF
+            </button>
+            <button class="btn btn-success" id="btn-trigger-payment-modal" onclick="openPaymentModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              Dia de Pagamento
+            </button>
+          </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards" id="summary-cards"></div>
+
+        <!-- Records Table -->
+        <div class="table-wrapper glass">
+          <table class="records-table">
+            <thead>
+              <tr>
+                <th>Colaborador</th>
+                <th>Local de Trabalho</th>
+                <th>Tipo</th>
+                <th>Data</th>
+                <th>Hora</th>
+              </tr>
+            </thead>
+            <tbody id="records-tbody">
+              <tr><td colspan="5" class="empty-state">Nenhum registro encontrado</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ════════ Modal: Login Admin ════════ -->
+  <div class="modal-overlay hidden" id="modal-admin-login">
+    <div class="modal-card glass animate-scale-in">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <div>
+            <h3>Acesso do Administrador</h3>
+            <p class="modal-subtitle">Entre com suas credenciais para gerenciar o sistema</p>
+          </div>
+        </div>
+        <button class="modal-close" id="btn-close-login-modal">&times;</button>
+      </div>
+
+      <form id="form-admin-login" class="modal-body">
+        <div class="form-group">
+          <label for="admin-username">Usuário</label>
+          <input type="text" id="admin-username" placeholder="Ex: admin" autocomplete="username" required>
+        </div>
+        <div class="form-group">
+          <label for="admin-password">Senha</label>
+          <input type="password" id="admin-password" placeholder="••••••••" autocomplete="current-password" required>
+        </div>
+        <div class="form-error hidden" id="login-error"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-login">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-login">Entrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ════════ Modal: Alterar Senha Admin ════════ -->
+  <div class="modal-overlay hidden" id="modal-change-password">
+    <div class="modal-card glass animate-scale-in">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </div>
+          <div>
+            <h3>Alterar Senha do Admin</h3>
+            <p class="modal-subtitle">Digite a senha atual e a nova senha desejada</p>
+          </div>
+        </div>
+        <button class="modal-close" id="btn-close-pass-modal">&times;</button>
+      </div>
+
+      <form id="form-change-password" class="modal-body">
+        <div class="form-group">
+          <label for="pass-current">Senha Atual</label>
+          <input type="password" id="pass-current" required autocomplete="current-password">
+        </div>
+        <div class="form-group">
+          <label for="pass-new">Nova Senha</label>
+          <input type="password" id="pass-new" minlength="4" required autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label for="pass-confirm">Confirmar Nova Senha</label>
+          <input type="password" id="pass-confirm" minlength="4" required autocomplete="new-password">
+        </div>
+        <div class="form-error hidden" id="pass-error"></div>
+        <div class="form-success hidden" id="pass-success"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-pass">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-pass">Salvar Nova Senha</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ════════ Modal: Editar Colaborador ════════ -->
+  <div class="modal-overlay hidden" id="modal-edit-employee">
+    <div class="modal-card modal-card-lg glass animate-scale-in">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </div>
+          <div>
+            <h3>Editar Colaborador</h3>
+            <p class="modal-subtitle">Atualize dados, mude o local de trabalho ou diária</p>
+          </div>
+        </div>
+        <button class="modal-close" id="btn-close-edit-modal">&times;</button>
+      </div>
+
+      <form id="form-edit-employee" class="modal-body">
+        <input type="hidden" id="edit-emp-id">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-emp-name">Nome Completo</label>
+            <input type="text" id="edit-emp-name" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-emp-role">Cargo / Função</label>
+            <input type="text" id="edit-emp-role">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-emp-daily-rate">Valor da Diária (R$)</label>
+            <input type="number" id="edit-emp-daily-rate" step="0.01" min="0">
+          </div>
+          <div class="form-group">
+            <label for="edit-emp-location">Local de Trabalho</label>
+            <select id="edit-emp-location">
+              <option value="">Selecione um local...</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-emp-payment-method">Forma de Pagamento</label>
+            <select id="edit-emp-payment-method">
+              <option value="PIX">PIX</option>
+              <option value="Transferência">Transferência Bancária</option>
+              <option value="Dinheiro">Dinheiro Espécie</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="edit-emp-pix-key-type">Tipo de Chave PIX</label>
+            <select id="edit-emp-pix-key-type">
+              <option value="CPF">CPF</option>
+              <option value="Email">E-mail</option>
+              <option value="Telefone">Telefone</option>
+              <option value="Aleatória">Chave Aleatória</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="edit-emp-pix-key">Chave PIX</label>
+          <input type="text" id="edit-emp-pix-key" placeholder="Chave PIX">
+        </div>
+
+        <div class="form-error hidden" id="edit-emp-error"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-edit">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-edit">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- ════════ Modal: Dia de Pagamento ════════ -->
+  <div class="modal-overlay hidden" id="modal-payment-day">
+    <div class="modal-card modal-card-xl glass animate-scale-in">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon" style="background: rgba(34, 197, 94, 0.15); color: #22c55e; border-color: rgba(34, 197, 94, 0.3);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div>
+            <h3>Dia de Pagamento — Fechamento de Folha</h3>
+            <p class="modal-subtitle">Cálculo de diárias, dias trabalhados e pagamentos por período</p>
+          </div>
+        </div>
+        <button class="modal-close" id="btn-close-pay-modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Controls: Period selector & Date filters -->
+        <div class="pay-controls-bar">
+          <div class="form-group" style="flex: 1; min-width: 180px;">
+            <label for="pay-period-type">Período de Pagamento</label>
+            <select id="pay-period-type">
+              <option value="weekly">Semanal (7 em 7 dias)</option>
+              <option value="fortnight" selected>Quinzena (15 em 15 dias)</option>
+              <option value="monthly">Mensal (Mês Completo)</option>
+              <option value="custom">Personalizado (Datas livres)</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="flex: 1; min-width: 140px;">
+            <label for="pay-start-date">Data Início</label>
+            <input type="date" id="pay-start-date">
+          </div>
+
+          <div class="form-group" style="flex: 1; min-width: 140px;">
+            <label for="pay-end-date">Data Fim</label>
+            <input type="date" id="pay-end-date">
+          </div>
+
+          <div class="form-group" style="align-self: flex-end;">
+            <button class="btn btn-primary" id="btn-recalculate-pay">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              Calcular
+            </button>
+          </div>
+        </div>
+
+        <!-- Summary Totals -->
+        <div class="summary-cards pay-summary-cards" id="pay-summary-cards">
+          <div class="summary-card">
+            <div class="summary-stat-label">Total Colaboradores</div>
+            <div class="summary-stat-value" id="pay-total-employees">0</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-stat-label">Total de Diárias (Dias)</div>
+            <div class="summary-stat-value" id="pay-total-days">0 dias</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-stat-label">Total a Pagar (R$)</div>
+            <div class="summary-stat-value currency" id="pay-total-amount">R$ 0,00</div>
+          </div>
+        </div>
+
+        <!-- Table of Payments -->
+        <div class="table-wrapper glass" style="max-height: 380px; overflow-y: auto;">
+          <table class="records-table">
+            <thead>
+              <tr>
+                <th>Colaborador</th>
+                <th>Local</th>
+                <th>Valor/Hora</th>
+                <th>Dias Trabalhados</th>
+                <th>Horas Totais</th>
+                <th>Total a Pagar</th>
+                <th>Forma / Chave PIX</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="pay-tbody">
+              <tr><td colspan="8" class="empty-state">Nenhum cálculo realizado</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="justify-content: space-between;">
+        <button type="button" class="btn btn-secondary" id="btn-close-pay-modal-foot">Fechar</button>
+        <button type="button" class="btn btn-success" id="btn-export-payroll-pdf">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+          Exportar Relatório Geral (PDF)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/vendor/face-api.js"></script>
+  <script src="js/api.js?v=21"></script>
+  <script src="js/faceRecognition.js?v=21"></script>
+  <script src="js/app.js?v=21"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then((reg) => {
+          console.log('✅ PWA Service Worker registrado com sucesso:', reg.scope);
+        }).catch((err) => {
+          console.warn('⚠️ Falha ao registrar Service Worker:', err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>

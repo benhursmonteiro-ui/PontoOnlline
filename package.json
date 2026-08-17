@@ -1,0 +1,16 @@
+{
+  "name": "ponto-facial",
+  "version": "1.0.0",
+  "description": "Sistema de ponto eletrônico online com reconhecimento facial",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "selfsigned": "^5.5.0",
+    "sql.js": "^1.11.0"
+  }
+}
