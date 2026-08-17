@@ -1288,13 +1288,15 @@ select option:hover {
 
   .dash-quick-actions {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 0.5rem;
   }
 
   .dash-quick-actions .btn {
-    padding: 0.65rem 0.85rem;
-    font-size: 0.82rem;
+    padding: 0.65rem 0.75rem;
+    font-size: 0.8rem;
+    justify-content: center;
+    text-align: center;
   }
 
   /* Financeiro Enquadrado */
@@ -1311,18 +1313,39 @@ select option:hover {
     font-size: 0.8rem;
   }
 
+  .fin-kpi-row {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.4rem;
+  }
+
   .fin-kpi-card {
-    padding: 0.75rem 0.85rem;
-    gap: 0.6rem;
+    padding: 0.65rem 0.5rem;
+    gap: 0.4rem;
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    border-radius: var(--radius);
   }
 
   .fin-kpi-icon {
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-sm);
+  }
+
+  .fin-kpi-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .fin-kpi-label {
+    font-size: 0.6rem;
+    letter-spacing: 0;
+    margin-bottom: 2px;
   }
 
   .fin-kpi-value {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
   }
 
   /* Modals Enquadrados */
@@ -1862,20 +1885,7 @@ select option:hover {
   width: 100%;
 }
 
-@media (max-width: 1100px) {
-  .dash-kpi-row {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .dash-content-row {
-    grid-template-columns: 1fr;
-  }
-}
 
-@media (max-width: 640px) {
-  .fin-kpi-row {
-    grid-template-columns: 1fr;
-  }
-}
 
 /* ── Clock Employee Login Step Styles ── */
 .clock-login-container {
