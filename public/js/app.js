@@ -207,6 +207,8 @@
     if (section === 'pagamento') initPagamentoSection();
   }
 
+  window.switchSection = switchSection;
+
   // ═══════════════════════════════════
   // CLOCK SECTION
   // ═══════════════════════════════════
@@ -466,23 +468,29 @@
   }
 
   function updateLocationDropdowns(locations) {
-    const curReg = regLocation.value;
-    const curFilter = filterLocation.value;
-    const curEdit = editEmpLocation.value;
+    if (!locations || !Array.isArray(locations)) return;
+    cachedLocations = locations;
 
-    regLocation.innerHTML = '<option value="">Selecione um local...</option>';
-    filterLocation.innerHTML = '<option value="">Todos os Locais</option>';
-    editEmpLocation.innerHTML = '<option value="">Selecione um local...</option>';
+    const curReg = regLocation ? regLocation.value : '';
+    const curFilter = filterLocation ? filterLocation.value : '';
+    const curEdit = editEmpLocation ? editEmpLocation.value : '';
 
-    locations.forEach(loc => {
-      regLocation.innerHTML += `<option value="${loc.id}">${loc.name}</option>`;
-      filterLocation.innerHTML += `<option value="${loc.id}">${loc.name}</option>`;
-      editEmpLocation.innerHTML += `<option value="${loc.id}">${loc.name}</option>`;
-    });
+    const optionsHtml = locations.map(loc => `<option value="${loc.id}">${loc.name}</option>`).join('');
 
-    regLocation.value = curReg;
-    filterLocation.value = curFilter;
-    editEmpLocation.value = curEdit;
+    if (regLocation) {
+      regLocation.innerHTML = '<option value="">Selecione um local...</option>' + optionsHtml;
+      if (curReg) regLocation.value = curReg;
+    }
+
+    if (filterLocation) {
+      filterLocation.innerHTML = '<option value="">Todos os Locais</option>' + optionsHtml;
+      if (curFilter) filterLocation.value = curFilter;
+    }
+
+    if (editEmpLocation) {
+      editEmpLocation.innerHTML = '<option value="">Selecione um local...</option>' + optionsHtml;
+      if (curEdit) editEmpLocation.value = curEdit;
+    }
   }
 
   formAddLocation.addEventListener('submit', async (e) => {
@@ -614,7 +622,7 @@
     const paymentMethod = regPaymentMethod.value;
     const pixKeyType = regPixKeyType.value;
     const pixKey = regPixKey.value.trim();
-    const locationId = regLocation.value || null;
+    const locationId = regLocation.value ? parseInt(regLocation.value) : null;
 
     if (!name) {
       regName.focus();
@@ -646,6 +654,7 @@
       regRole.value = '';
       regDailyRate.value = '';
       regPixKey.value = '';
+      regLocation.value = '';
       resetCaptureState();
 
       captureText.textContent = '✓ Colaborador cadastrado com sucesso!';
@@ -683,7 +692,11 @@
               }
             </div>
             <div>
-              <div class="employee-name">${emp.name}</div>
+              <div class="employee-name">
+                <a href="javascript:void(0)" onclick="openEmployeeTimesheet(${emp.id})" class="clickable-emp-name" title="Abrir Folha de Ponto de ${emp.name.replace(/'/g, "\\'")} no período de pagamento">
+                  ${emp.name} ↗
+                </a>
+              </div>
               <div class="employee-role">${emp.role || '—'}</div>
               <div class="employee-meta">
                 ${emp.location_name ? `<span class="badge badge-location">📍 ${emp.location_name}</span>` : ''}
@@ -693,6 +706,9 @@
             </div>
           </div>
           <div class="employee-actions">
+            <button class="btn btn-secondary btn-sm" onclick="openEmployeeTimesheet(${emp.id})" title="Ver Folha de Ponto">
+              📋 Folha
+            </button>
             <button class="btn btn-secondary btn-sm" onclick="editEmployee(${emp.id})" title="Editar / Mudar Local">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </button>
@@ -710,9 +726,16 @@
   }
 
   // Global Edit Function
-  window.editEmployee = function (id) {
-    const emp = cachedEmployees.find(e => e.id === id);
+  window.editEmployee = async function (id) {
+    const emp = cachedEmployees.find(e => String(e.id) === String(id));
     if (!emp) return;
+
+    if (!cachedLocations || cachedLocations.length === 0) {
+      try {
+        cachedLocations = await Api.getLocations();
+      } catch (err) {}
+    }
+    updateLocationDropdowns(cachedLocations);
 
     editEmpId.value = emp.id;
     editEmpName.value = emp.name;
@@ -721,7 +744,7 @@
     editEmpPaymentMethod.value = emp.payment_method || 'PIX';
     editEmpPixKeyType.value = emp.pix_key_type || 'CPF';
     editEmpPixKey.value = emp.pix_key || '';
-    editEmpLocation.value = emp.location_id || '';
+    editEmpLocation.value = emp.location_id ? String(emp.location_id) : '';
 
     editEmpError.classList.add('hidden');
     modalEditEmployee.classList.remove('hidden');
@@ -736,7 +759,7 @@
     const name = editEmpName.value.trim();
     const role = editEmpRole.value.trim();
     const dailyRate = parseFloat(editEmpDailyRate.value) || 0;
-    const locationId = editEmpLocation.value || null;
+    const locationId = editEmpLocation.value ? parseInt(editEmpLocation.value) : null;
     const paymentMethod = editEmpPaymentMethod.value;
     const pixKeyType = editEmpPixKeyType.value;
     const pixKey = editEmpPixKey.value.trim();
@@ -780,11 +803,46 @@
   // RECORDS & TIMESHEET SECTION
   // ═══════════════════════════════════
 
+  window.openEmployeeTimesheet = async function (employeeId, startDate, endDate) {
+    if (!employeeId) return;
+
+    switchSection('records');
+
+    if (!filterEmployee || filterEmployee.options.length <= 1) {
+      try {
+        const employees = await Api.getEmployees();
+        updateEmployeeFilter(employees);
+      } catch (err) {}
+    }
+
+    if (filterEmployee) {
+      filterEmployee.value = String(employeeId);
+    }
+
+    const sDate = startDate || (payStartDate && payStartDate.value) || (filterStart && filterStart.value);
+    const eDate = endDate || (payEndDate && payEndDate.value) || (filterEnd && filterEnd.value);
+
+    if (sDate && filterStart) filterStart.value = sDate;
+    if (eDate && filterEnd) filterEnd.value = eDate;
+
+    await loadRecords();
+
+    const secRecords = $('#section-records');
+    if (secRecords) {
+      secRecords.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   async function initRecordsSection() {
-    const now = new Date();
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-    filterStart.value = formatDate(firstDay);
-    filterEnd.value = formatDate(now);
+    if (payStartDate && payStartDate.value && payEndDate && payEndDate.value) {
+      if (filterStart) filterStart.value = payStartDate.value;
+      if (filterEnd) filterEnd.value = payEndDate.value;
+    } else if (!filterStart.value || !filterEnd.value) {
+      const now = new Date();
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      filterStart.value = formatDate(firstDay);
+      filterEnd.value = formatDate(now);
+    }
 
     try {
       const [employees, locations] = await Promise.all([
@@ -840,8 +898,13 @@
     }
 
     summaryCards.innerHTML = summary.map(s => `
-      <div class="summary-card animate-scale-in">
-        <div class="summary-card-name">${s.employee_name} <span class="badge badge-location">${s.location_name}</span></div>
+      <div class="summary-card animate-scale-in" style="cursor: pointer;" onclick="openEmployeeTimesheet(${s.employee_id})" title="Clique para filtrar a folha de ponto de ${s.employee_name.replace(/'/g, "\\'")}">
+        <div class="summary-card-name">
+          <a href="javascript:void(0)" onclick="event.stopPropagation(); openEmployeeTimesheet(${s.employee_id})" class="clickable-emp-name">
+            ${s.employee_name} ↗
+          </a>
+          <span class="badge badge-location">${s.location_name || '—'}</span>
+        </div>
         <div class="summary-card-stats">
           <div class="summary-stat">
             <span class="summary-stat-value">${s.total_hours}h</span>
@@ -870,7 +933,11 @@
       const dt = new Date(r.timestamp);
       return `
         <tr>
-          <td><strong>${r.employee_name}</strong></td>
+          <td>
+            <a href="javascript:void(0)" onclick="openEmployeeTimesheet(${r.employee_id})" class="clickable-emp-name" title="Abrir folha de ponto de ${r.employee_name.replace(/'/g, "\\'")}">
+              <strong>${r.employee_name}</strong> ↗
+            </a>
+          </td>
           <td><span class="badge badge-location">${r.location_name || 'Sede'}</span></td>
           <td><span class="badge badge-${r.type}">${r.type === 'entrada' ? '↗ Entrada' : '↙ Saída'}</span></td>
           <td>${dt.toLocaleDateString('pt-BR')}</td>
@@ -1061,7 +1128,9 @@
         return `
         <tr class="${isPaid ? 'row-paid' : ''}">
           <td>
-            <strong style="${nameStyle}">${s.employee_name}</strong>${paidBadge}<br>
+            <a href="javascript:void(0)" onclick="openEmployeeTimesheet(${s.employee_id}, '${sStartDate}', '${sEndDate}')" class="clickable-emp-name" title="Abrir Folha de Ponto de ${s.employee_name.replace(/'/g, "\\'")} neste período">
+              <strong style="${nameStyle}">${s.employee_name}</strong> ↗
+            </a>${paidBadge}<br>
             <small style="color: var(--text-secondary);">${s.role || '—'}</small>
           </td>
           <td><span class="badge badge-location">${s.location_name || '—'}</span></td>
@@ -1726,6 +1795,7 @@
 
   async function init() {
     updateAdminUI();
+    loadLocations();
     if (loadingOverlay) loadingOverlay.classList.add('hidden');
 
     if (isAdminLoggedIn()) {

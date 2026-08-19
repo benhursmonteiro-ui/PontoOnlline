@@ -2492,3 +2492,19 @@ select option:hover {
     border-radius: var(--radius);
   }
 }
+
+/* ── Clickable Employee Links ── */
+.clickable-emp-name {
+  color: inherit;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.clickable-emp-name:hover {
+  color: #818cf8;
+  text-decoration: underline;
+}

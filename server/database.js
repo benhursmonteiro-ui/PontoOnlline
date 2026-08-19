@@ -320,7 +320,7 @@ function getRecordById(id) {
     SELECT r.id, r.employee_id, e.name as employee_name, l.name as location_name, r.type, r.timestamp
     FROM time_records r
     JOIN employees e ON e.id = r.employee_id
-    LEFT JOIN locations l ON l.id = r.location_id
+    LEFT JOIN locations l ON l.id = COALESCE(r.location_id, e.location_id)
     WHERE r.id = ?
   `, [id]);
 }
@@ -340,7 +340,7 @@ function getRecords({ employeeId, locationId, startDate, endDate, limit = 100 })
     SELECT r.id, r.employee_id, e.name as employee_name, l.name as location_name, r.type, r.timestamp
     FROM time_records r
     JOIN employees e ON e.id = r.employee_id
-    LEFT JOIN locations l ON l.id = r.location_id
+    LEFT JOIN locations l ON l.id = COALESCE(r.location_id, e.location_id)
     WHERE 1=1
   `;
   const params = [];
