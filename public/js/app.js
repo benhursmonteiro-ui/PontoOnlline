@@ -803,35 +803,128 @@
   // RECORDS & TIMESHEET SECTION
   // ═══════════════════════════════════
 
+  let activeTimesheetEmpId = null;
+  let activeTimesheetStart = '';
+  let activeTimesheetEnd = '';
+  let activeTimesheetEmpName = '';
+
   window.openEmployeeTimesheet = async function (employeeId, startDate, endDate) {
     if (!employeeId) return;
 
-    switchSection('records');
+    activeTimesheetEmpId = employeeId;
+    const modal = $('#modal-employee-timesheet');
+    const sheetName = $('#sheet-emp-name');
+    const sheetPeriod = $('#sheet-emp-period');
+    const sheetInfo = $('#sheet-emp-info-box');
+    const sheetTbody = $('#sheet-emp-records-tbody');
 
-    if (!filterEmployee || filterEmployee.options.length <= 1) {
-      try {
-        const employees = await Api.getEmployees();
-        updateEmployeeFilter(employees);
-      } catch (err) {}
-    }
+    if (!modal) return;
+
+    const sDate = startDate || (payStartDate && payStartDate.value) || (filterStart && filterStart.value) || '';
+    const eDate = endDate || (payEndDate && payEndDate.value) || (filterEnd && filterEnd.value) || '';
+
+    activeTimesheetStart = sDate;
+    activeTimesheetEnd = eDate;
+
+    if (sheetName) sheetName.textContent = 'Carregando...';
+    if (sheetPeriod) sheetPeriod.textContent = `Período: ${sDate || 'Geral'} até ${eDate || 'Hoje'}`;
+    if (sheetInfo) sheetInfo.innerHTML = '<div class="loader-ring" style="margin: 1rem auto; display: block;"></div>';
+    if (sheetTbody) sheetTbody.innerHTML = '<tr><td colspan="4" class="empty-state">Carregando registros de ponto...</td></tr>';
+    modal.classList.remove('hidden');
 
     if (filterEmployee) {
+      if (filterEmployee.options.length <= 1) {
+        try {
+          const employees = await Api.getEmployees();
+          updateEmployeeFilter(employees);
+        } catch (err) {}
+      }
       filterEmployee.value = String(employeeId);
     }
-
-    const sDate = startDate || (payStartDate && payStartDate.value) || (filterStart && filterStart.value);
-    const eDate = endDate || (payEndDate && payEndDate.value) || (filterEnd && filterEnd.value);
-
     if (sDate && filterStart) filterStart.value = sDate;
     if (eDate && filterEnd) filterEnd.value = eDate;
 
-    await loadRecords();
+    try {
+      const [summary, records] = await Promise.all([
+        Api.getRecordsSummary({ employeeId, startDate: sDate, endDate: eDate }),
+        Api.getRecords({ employeeId, startDate: sDate, endDate: eDate, limit: 500 })
+      ]);
 
-    const secRecords = $('#section-records');
-    if (secRecords) {
-      secRecords.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const s = (summary && summary.length > 0) ? summary[0] : null;
+      activeTimesheetEmpName = s ? s.employee_name : 'Colaborador';
+
+      if (sheetName) sheetName.textContent = `Folha de Ponto — ${activeTimesheetEmpName}`;
+      if (sheetPeriod) sheetPeriod.textContent = `Período: ${sDate || 'Geral'} até ${eDate || 'Hoje'}`;
+
+      if (sheetInfo) {
+        if (s) {
+          const paidKey = `paid_${sDate}_${eDate}_${s.employee_id}`;
+          const isPaid = localStorage.getItem(paidKey) === 'true';
+
+          sheetInfo.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+              <div>
+                <div style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">
+                  ${s.employee_name} ${isPaid ? '<span class="badge badge-paid">✓ PAGO</span>' : '<span class="badge badge-warning">PENDENTE</span>'}
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">
+                  Cargo: <strong>${s.role || '—'}</strong> | Local: <strong>${s.location_name || '—'}</strong>
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                  Pagamento: <strong>${s.payment_method}</strong> (${s.pix_key_type || 'PIX'}: ${s.pix_key || 'Não informado'})
+                </div>
+              </div>
+              <div style="text-align: right; background: rgba(255,255,255,0.04); padding: 0.75rem 1rem; border-radius: var(--radius); border: 1px solid rgba(255,255,255,0.06);">
+                <div style="font-size: 0.8rem; color: var(--text-secondary);">Total a Receber</div>
+                <div style="font-size: 1.35rem; font-weight: 800; color: var(--success); margin-top: 2px;">${s.total_earnings_formatted}</div>
+                <div style="font-size: 0.8rem; color: var(--accent-light); margin-top: 4px;">
+                  ${s.days_worked || 0} dias trabalhados (${s.total_hours}h) • Diária: ${s.daily_rate_formatted}
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          sheetInfo.innerHTML = '<p class="empty-state">Sem resumo disponível para este período</p>';
+        }
+      }
+
+      if (sheetTbody) {
+        if (!records || records.length === 0) {
+          sheetTbody.innerHTML = '<tr><td colspan="4" class="empty-state">Nenhum registro de ponto neste período</td></tr>';
+        } else {
+          sheetTbody.innerHTML = records.map(r => {
+            const dt = new Date(r.timestamp);
+            return `
+              <tr>
+                <td><span class="badge badge-${r.type}">${r.type === 'entrada' ? '↗ Entrada' : '↙ Saída'}</span></td>
+                <td><span class="badge badge-location">${r.location_name || 'Sede'}</span></td>
+                <td>${dt.toLocaleDateString('pt-BR')}</td>
+                <td><strong>${dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</strong></td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+    } catch (err) {
+      console.error('Error loading employee timesheet modal:', err);
+      if (sheetInfo) sheetInfo.innerHTML = `<p class="form-error">Erro ao carregar dados: ${err.message}</p>`;
     }
   };
+
+  const modalEmpSheet = $('#modal-employee-timesheet');
+  const btnCloseSheet1 = $('#btn-close-timesheet-modal');
+  const btnCloseSheet2 = $('#btn-close-timesheet');
+  const btnExportSheetPDF = $('#btn-export-sheet-pdf');
+
+  if (btnCloseSheet1) btnCloseSheet1.addEventListener('click', () => modalEmpSheet && modalEmpSheet.classList.add('hidden'));
+  if (btnCloseSheet2) btnCloseSheet2.addEventListener('click', () => modalEmpSheet && modalEmpSheet.classList.add('hidden'));
+  if (btnExportSheetPDF) {
+    btnExportSheetPDF.addEventListener('click', () => {
+      if (activeTimesheetEmpId) {
+        exportReceiptPDF(activeTimesheetEmpId, activeTimesheetEmpName, activeTimesheetStart, activeTimesheetEnd);
+      }
+    });
+  }
 
   async function initRecordsSection() {
     if (payStartDate && payStartDate.value && payEndDate && payEndDate.value) {
