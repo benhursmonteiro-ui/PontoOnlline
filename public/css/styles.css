@@ -1,9 +1,4 @@
-/* ═══════════════════════════════════════════════════
-   PONTO FACIAL — Design System
-   Premium Dark UI with Glassmorphism
-   ═══════════════════════════════════════════════════ */
 
-/* ── Reset & Variables ── */
 *, *::before, *::after {
   margin: 0;
   padding: 0;
@@ -13,7 +8,6 @@
 :root {
   color-scheme: dark;
 
-  /* Colors */
   --bg-primary: #0a0a0f;
   --bg-secondary: #12121a;
   --bg-card: rgba(20, 20, 32, 0.7);
@@ -41,7 +35,6 @@
   --border: rgba(255, 255, 255, 0.06);
   --border-accent: rgba(99, 102, 241, 0.3);
 
-  /* Spacing */
   --sp-1: 0.25rem;
   --sp-2: 0.5rem;
   --sp-3: 0.75rem;
@@ -52,7 +45,6 @@
   --sp-10: 2.5rem;
   --sp-12: 3rem;
 
-  /* Typography */
   --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --fs-xs: 0.75rem;
   --fs-sm: 0.875rem;
@@ -62,19 +54,16 @@
   --fs-2xl: 1.5rem;
   --fs-3xl: 1.875rem;
 
-  /* Radius */
   --radius-sm: 0.5rem;
   --radius: 0.75rem;
   --radius-lg: 1rem;
   --radius-xl: 1.25rem;
   --radius-full: 9999px;
 
-  /* Shadows */
   --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.4);
   --shadow-glow: 0 0 30px var(--accent-glow);
 
-  /* Transitions */
   --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -93,7 +82,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Background decoration */
 body::before {
   content: '';
   position: fixed;
@@ -107,7 +95,6 @@ body::before {
   z-index: 0;
 }
 
-/* ── Glass Effect ── */
 .glass {
   background: var(--bg-card);
   backdrop-filter: blur(20px);
@@ -116,7 +103,6 @@ body::before {
   border-radius: var(--radius-lg);
 }
 
-/* ── Loading Overlay ── */
 .loading-overlay {
   position: fixed;
   inset: 0;
@@ -163,7 +149,6 @@ body::before {
   to { transform: rotate(360deg); }
 }
 
-/* ── Header ── */
 .header {
   position: sticky;
   top: 0;
@@ -218,7 +203,6 @@ body::before {
   border-radius: var(--radius-full);
 }
 
-/* Navigation */
 .nav {
   display: flex;
   gap: var(--sp-1);
@@ -262,7 +246,6 @@ body::before {
   box-shadow: var(--shadow-glow);
 }
 
-/* Header Clock */
 .clock-display {
   font-size: var(--fs-2xl);
   font-weight: 700;
@@ -271,7 +254,6 @@ body::before {
   letter-spacing: 0.02em;
 }
 
-/* ── Main ── */
 .main {
   position: relative;
   z-index: 1;
@@ -280,7 +262,6 @@ body::before {
   padding: var(--sp-8) var(--sp-6);
 }
 
-/* Sections */
 .section {
   display: none;
   animation: fadeIn 0.4s ease;
@@ -310,7 +291,6 @@ body::before {
   font-size: var(--fs-lg);
 }
 
-/* ── Clock Section ── */
 .clock-container {
   display: grid;
   grid-template-columns: 1fr 380px;
@@ -318,7 +298,6 @@ body::before {
   align-items: start;
 }
 
-/* Camera */
 .camera-wrapper {
   display: flex;
   flex-direction: column;
@@ -352,7 +331,6 @@ body::before {
   transform: scaleX(-1);
 }
 
-/* Scan line animation */
 .scan-line {
   position: absolute;
   left: 10%;
@@ -369,7 +347,6 @@ body::before {
   50% { top: 85%; }
 }
 
-/* Corner decorations */
 .corner {
   position: absolute;
   width: 30px;
@@ -385,7 +362,6 @@ body::before {
 .corner-bl { bottom: 12px; left: 12px; border-bottom-width: 3px; border-left-width: 3px; border-radius: 0 0 0 4px; }
 .corner-br { bottom: 12px; right: 12px; border-bottom-width: 3px; border-right-width: 3px; border-radius: 0 0 4px 0; }
 
-/* Camera status */
 .camera-status {
   display: flex;
   align-items: center;
@@ -416,7 +392,6 @@ body::before {
   50% { opacity: 0.4; }
 }
 
-/* Info Panel */
 .clock-info-panel {
   display: flex;
   flex-direction: column;
@@ -486,7 +461,6 @@ body::before {
   color: var(--success);
 }
 
-/* ── Buttons ── */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -568,7 +542,6 @@ body::before {
   font-size: var(--fs-xs);
 }
 
-/* ── Toast ── */
 .toast {
   position: fixed;
   bottom: -120px;
@@ -625,7 +598,6 @@ body::before {
   color: var(--text-secondary);
 }
 
-/* ── Register Section ── */
 .register-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -697,7 +669,6 @@ select option:hover {
   max-height: 280px;
 }
 
-/* Capture Progress */
 .capture-progress {
   display: flex;
   align-items: center;
@@ -738,7 +709,6 @@ select option:hover {
   flex: 1;
 }
 
-/* Employees List */
 .employees-list {
   padding: var(--sp-6);
 }
@@ -802,7 +772,6 @@ select option:hover {
   color: var(--text-secondary);
 }
 
-/* ── Records Section ── */
 .records-container {
   display: flex;
   flex-direction: column;
@@ -852,12 +821,10 @@ select option:hover {
   box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
-/* date input icon color fix for dark mode */
 .filter-group input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(0.7);
 }
 
-/* Summary cards */
 .summary-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -909,7 +876,6 @@ select option:hover {
   letter-spacing: 0.05em;
 }
 
-/* Table */
 .table-wrapper {
   overflow-x: auto;
   padding: var(--sp-2);
@@ -945,7 +911,6 @@ select option:hover {
   background: var(--bg-hover);
 }
 
-/* Type badges */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -975,7 +940,6 @@ select option:hover {
   padding: var(--sp-8);
 }
 
-/* ── Responsive Rules (Mobile-First Framed Layout) ── */
 @media (max-width: 1200px) {
   .dash-kpi-row {
     grid-template-columns: repeat(2, 1fr);
@@ -1015,7 +979,6 @@ select option:hover {
     min-width: auto;
   }
 
-  /* Reports & Filters Responsive */
   .filters {
     flex-direction: column;
     padding: var(--sp-4);
@@ -1038,7 +1001,6 @@ select option:hover {
     justify-content: center;
   }
 
-  /* Modals Responsive */
   .modal-overlay {
     padding: var(--sp-2);
   }
@@ -1134,7 +1096,6 @@ select option:hover {
   }
 }
 
-/* ── Mobile Phone Fine-Tuning (< 640px) ── */
 @media (max-width: 640px) {
   .header-inner {
     padding: 0.6rem 0.75rem;
@@ -1197,7 +1158,6 @@ select option:hover {
     font-size: 0.8rem;
   }
 
-  /* Dashboard 2x2 Enquadrado */
   .dash-kpi-row {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.6rem;
@@ -1249,7 +1209,6 @@ select option:hover {
     text-align: center;
   }
 
-  /* Financeiro Enquadrado */
   .fin-form-col {
     padding: 0.85rem;
   }
@@ -1298,7 +1257,6 @@ select option:hover {
     font-size: 0.95rem;
   }
 
-  /* Modals Enquadrados */
   .modal-overlay {
     padding: 0.4rem;
   }
@@ -1338,10 +1296,9 @@ select option:hover {
   .form-group input,
   .form-group select {
     padding: 0.6rem 0.75rem;
-    font-size: 16px; /* Prevents auto-zoom on iOS Safari */
+    font-size: 16px; 
   }
 
-  /* Clock Section Mobile */
   .clock-container {
     gap: 0.85rem;
   }
@@ -1377,7 +1334,6 @@ select option:hover {
   }
 }
 
-/* ── Utility animations ── */
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
@@ -1396,7 +1352,6 @@ select option:hover {
   animation: scaleIn 0.3s ease forwards;
 }
 
-/* ── Header Right & Admin Controls ── */
 .header-right {
   display: flex;
   align-items: center;
@@ -1432,12 +1387,10 @@ select option:hover {
   height: 1.1rem;
 }
 
-/* ── Hidden helper ── */
 .hidden {
   display: none !important;
 }
 
-/* ── Modals ── */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -1555,7 +1508,6 @@ select option:hover {
   font-weight: 500;
 }
 
-/* ── Form Layouts & Rows ── */
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1613,7 +1565,6 @@ select option:hover {
   align-items: flex-end;
 }
 
-/* ── Badges & Details ── */
 .badge-location {
   background: rgba(99, 102, 241, 0.15);
   color: var(--accent-light);
@@ -1657,7 +1608,6 @@ select option:hover {
   font-weight: 800;
 }
 
-/* ── Paid Employee Status Styles ── */
 .badge-paid {
   background: rgba(34, 197, 94, 0.2);
   color: #22c55e;
@@ -1694,7 +1644,6 @@ select option:hover {
   background: rgba(34, 197, 94, 0.04) !important;
 }
 
-/* ── Dashboard Styles ── */
 .dashboard-grid {
   display: flex;
   flex-direction: column;
@@ -1835,9 +1784,6 @@ select option:hover {
   width: 100%;
 }
 
-
-
-/* ── Clock Employee Login Step Styles ── */
 .clock-login-container {
   max-width: 520px;
   margin: var(--sp-6) auto;
@@ -1883,8 +1829,6 @@ select option:hover {
   color: var(--text-secondary);
 }
 
-
-/* ── Financial Section Layout & Components ── */
 .fin-layout {
   display: grid;
   grid-template-columns: 340px 1fr;
@@ -2043,10 +1987,6 @@ select option:hover {
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
-/* ═══════════════════════════════════════════════
-   MASTER RESPONSIVE RULES (CSS CASCADE PRIORITY)
-   ═══════════════════════════════════════════════ */
-
 @media (max-width: 1200px) {
   .dash-kpi-row {
     grid-template-columns: repeat(2, 1fr);
@@ -2136,7 +2076,6 @@ select option:hover {
     min-width: auto;
   }
 
-  /* Reports & Filters Responsive */
   .filters {
     flex-direction: column;
     padding: var(--sp-4);
@@ -2159,7 +2098,6 @@ select option:hover {
     justify-content: center;
   }
 
-  /* Modals Responsive */
   .modal-overlay {
     padding: var(--sp-2);
   }
@@ -2251,7 +2189,6 @@ select option:hover {
   }
 }
 
-/* ── Mobile Phone Fine-Tuning (< 640px) ── */
 @media (max-width: 640px) {
   .header-inner {
     padding: 0.6rem 0.75rem;
@@ -2314,7 +2251,6 @@ select option:hover {
     font-size: 0.8rem;
   }
 
-  /* Dashboard 2x2 Enquadrado */
   .dash-kpi-row {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 0.6rem;
@@ -2366,7 +2302,6 @@ select option:hover {
     text-align: center;
   }
 
-  /* Financeiro Enquadrado */
   .fin-form-col {
     padding: 0.85rem;
   }
@@ -2415,7 +2350,6 @@ select option:hover {
     font-size: 0.95rem;
   }
 
-  /* Modals Enquadrados */
   .modal-overlay {
     padding: 0.4rem;
   }
@@ -2455,7 +2389,7 @@ select option:hover {
   .form-group input,
   .form-group select {
     padding: 0.6rem 0.75rem;
-    font-size: 16px; /* Prevents auto-zoom on iOS Safari */
+    font-size: 16px; 
   }
 
   .clock-container {
@@ -2493,7 +2427,6 @@ select option:hover {
   }
 }
 
-/* ── Clickable Employee Links ── */
 .clickable-emp-name {
   color: inherit;
   text-decoration: none;

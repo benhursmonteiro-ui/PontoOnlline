@@ -1,12 +1,8 @@
-/* ═══════════════════════════════════════
-   API Client — Comunicação com o Backend (Com Suporte Offline & Sincronização)
-   ═══════════════════════════════════════ */
 
 const API_BASE = window.location.origin + '/api';
 
 const Api = {
-  // ── Offline Storage & Sync Helpers ──
-
+  
   getOfflineQueue() {
     try {
       return JSON.parse(localStorage.getItem('ponto_offline_queue') || '[]');
@@ -68,8 +64,6 @@ const Api = {
     }
   },
 
-  // ── Locations ──
-
   async getLocations() {
     try {
       const res = await fetch(`${API_BASE}/locations`);
@@ -105,8 +99,6 @@ const Api = {
     }
     return res.json();
   },
-
-  // ── Employees ──
 
   async getEmployees() {
     try {
@@ -173,8 +165,6 @@ const Api = {
     return res.json();
   },
 
-  // ── Face Descriptors ──
-
   async getDescriptors() {
     try {
       const res = await fetch(`${API_BASE}/descriptors`);
@@ -189,8 +179,6 @@ const Api = {
       throw new Error('Sem conexão com o servidor e nenhum descritor salvo em cache local.');
     }
   },
-
-  // ── Time Records ──
 
   async createRecord(employeeId, locationId) {
     const pad = (n) => String(n).padStart(2, '0');
@@ -208,7 +196,7 @@ const Api = {
         throw new Error(data.error || 'Erro ao registrar ponto');
       }
       const record = await res.json();
-      // Try syncing any backlog if we're back online
+      
       this.syncOfflineRecords();
       return record;
     } catch (err) {
@@ -283,8 +271,6 @@ const Api = {
     }
   },
 
-  // ── Admin Auth ──
-
   async adminLogin(username, password) {
     const res = await fetch(`${API_BASE}/admin/login`, {
       method: 'POST',
@@ -310,8 +296,6 @@ const Api = {
     }
     return data;
   },
-
-  // ── Financial Transactions ──
 
   async getFinancialSummary({ startDate, endDate } = {}) {
     const params = new URLSearchParams();

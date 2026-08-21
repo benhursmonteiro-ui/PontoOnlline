@@ -1,11 +1,7 @@
-/* ═══════════════════════════════════════
-   App — Main Application Logic
-   ═══════════════════════════════════════ */
 
 (async function () {
   'use strict';
 
-  // ── DOM References ──
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => document.querySelectorAll(sel);
 
@@ -13,7 +9,6 @@
   const loaderText = $('.loader-text');
   const headerClock = $('#header-clock');
 
-  // Clock section
   const clockVideo = $('#clock-video');
   const clockCanvas = $('#clock-canvas');
   const clockStatus = $('#clock-status');
@@ -26,7 +21,6 @@
   const toastTitle = $('#toast-title');
   const toastMessage = $('#toast-message');
 
-  // Register section
   const registerVideo = $('#register-video');
   const registerCanvas = $('#register-canvas');
   const regName = $('#reg-name');
@@ -41,13 +35,11 @@
   const captureText = $('#capture-text');
   const employeesContainer = $('#employees-container');
 
-  // Locations section
   const formAddLocation = $('#form-add-location');
   const locName = $('#loc-name');
   const locAddress = $('#loc-address');
   const locationsContainer = $('#locations-container');
 
-  // Records section
   const filterEmployee = $('#filter-employee');
   const filterLocation = $('#filter-location');
   const filterStart = $('#filter-start');
@@ -59,7 +51,6 @@
   const summaryCards = $('#summary-cards');
   const recordsTbody = $('#records-tbody');
 
-  // Payment Day Modal references
   const modalPaymentDay = $('#modal-payment-day');
   const btnClosePayModal = $('#btn-close-pay-modal');
   const btnClosePayModalFoot = $('#btn-close-pay-modal-foot');
@@ -73,7 +64,6 @@
   const payTbody = $('#pay-tbody');
   const btnExportPayrollPDF = $('#btn-export-payroll-pdf');
 
-  // Admin Controls & Modals
   const btnAdminLoginTrigger = $('#btn-admin-login-trigger');
   const adminUserBadge = $('#admin-user-badge');
   const btnChangePassTrigger = $('#btn-change-pass-trigger');
@@ -97,7 +87,6 @@
   const passError = $('#pass-error');
   const passSuccess = $('#pass-success');
 
-  // Modal Edit Employee
   const modalEditEmployee = $('#modal-edit-employee');
   const btnCloseEditModal = $('#btn-close-edit-modal');
   const btnCancelEdit = $('#btn-cancel-edit');
@@ -112,7 +101,6 @@
   const editEmpPixKey = $('#edit-emp-pix-key');
   const editEmpError = $('#edit-emp-error');
 
-  // ── State ──
   let currentSection = 'clock';
   let capturedDescriptors = [];
   let capturedPhoto = null;
@@ -129,7 +117,6 @@
   let cachedEmployees = [];
   let cachedLocations = [];
 
-  // ── Header Clock ──
   function updateClock() {
     const now = new Date();
     headerClock.textContent = now.toLocaleTimeString('pt-BR', {
@@ -141,7 +128,6 @@
   setInterval(updateClock, 1000);
   updateClock();
 
-  // ── Admin Authorization & UI ──
   function isAdminLoggedIn() {
     return !!currentAdminUser;
   }
@@ -164,7 +150,6 @@
     }
   }
 
-  // ── Navigation ──
   $$('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const section = btn.dataset.section;
@@ -176,17 +161,14 @@
   function switchSection(section) {
     if (!section) return;
 
-    // Update nav
     $$('.nav-btn').forEach(b => b.classList.remove('active'));
     const targetNav = $(`[data-section="${section}"]`);
     if (targetNav) targetNav.classList.add('active');
 
-    // Update sections
     $$('.section').forEach(s => s.classList.remove('active'));
     const targetSec = $(`#section-${section}`);
     if (targetSec) targetSec.classList.add('active');
 
-    // Stop previous camera/loops
     if (currentSection === 'clock' && section !== 'clock') {
       if (detectionLoop) detectionLoop.stop();
       FaceRecognition.stopCamera(clockVideo);
@@ -197,7 +179,6 @@
 
     currentSection = section;
 
-    // Initialize section
     if (section === 'clock') initClockSection();
     if (section === 'register') initRegisterSection();
     if (section === 'locations') initLocationsSection();
@@ -209,15 +190,10 @@
 
   window.switchSection = switchSection;
 
-  // ═══════════════════════════════════
-  // CLOCK SECTION
-  // ═══════════════════════════════════
-
   async function initClockSection() {
     clockStatus.className = 'camera-status';
     clockStatus.querySelector('span').textContent = 'Solicitando acesso à câmera...';
 
-    // Start camera
     const started = await FaceRecognition.startCamera(clockVideo);
     if (!started) {
       clockStatus.className = 'camera-status error';
@@ -228,7 +204,6 @@
     clockStatus.className = 'camera-status active';
     clockStatus.querySelector('span').textContent = 'Câmera Ativa — Carregando IA...';
 
-    // Load models
     try {
       await FaceRecognition.loadModels((msg) => {
         if (clockStatus) clockStatus.querySelector('span').textContent = msg;
@@ -238,7 +213,6 @@
       console.warn('Erro ao carregar IA:', e);
     }
 
-    // Load face descriptors and create matcher
     try {
       const descriptors = await Api.getDescriptors();
       if (descriptors.length > 0) {
@@ -251,7 +225,6 @@
       console.error('Error loading descriptors:', err);
     }
 
-    // Start detection loop
     if (detectionLoop) detectionLoop.stop();
     detectionLoop = FaceRecognition.startDetectionLoop(
       clockVideo,
@@ -399,7 +372,6 @@
     }
   }
 
-  // ── Network Status & Offline Sync Listeners ──
   window.addEventListener('online', () => {
     console.log('[Offline Sync] Conexão restabelecida! Sincronizando dados com o servidor...');
     Api.syncOfflineRecords();
@@ -413,7 +385,6 @@
     );
   });
 
-  // Auto-sync pending records on load
   setTimeout(() => Api.syncOfflineRecords(), 3000);
 
   btnManualClock.addEventListener('click', () => {
@@ -429,10 +400,6 @@
     setTimeout(() => clockToast.classList.remove('show'), 4000);
   }
 
-  // ═══════════════════════════════════
-  // LOCATIONS SECTION
-  // ═══════════════════════════════════
-
   async function initLocationsSection() {
     loadLocations();
   }
@@ -441,7 +408,6 @@
     try {
       cachedLocations = await Api.getLocations();
 
-      // Render Locations List
       if (cachedLocations.length === 0) {
         locationsContainer.innerHTML = '<p class="empty-state">Nenhum local cadastrado</p>';
       } else {
@@ -460,7 +426,6 @@
         `).join('');
       }
 
-      // Update location dropdowns
       updateLocationDropdowns(cachedLocations);
     } catch (err) {
       console.error('Error loading locations:', err);
@@ -519,10 +484,6 @@
       alert('Erro ao remover local: ' + err.message);
     }
   };
-
-  // ═══════════════════════════════════
-  // REGISTER SECTION
-  // ═══════════════════════════════════
 
   async function initRegisterSection() {
     resetCaptureState();
@@ -586,7 +547,6 @@
         return;
       }
 
-      // Draw bounding box feedback
       if (registerCanvas && result.box) {
         FaceRecognition.drawBox(registerVideo, registerCanvas, result.box, `Amostra ${capturedDescriptors.length + 1}/3`);
       }
@@ -596,7 +556,6 @@
       const dot = $(`#dot-${idx}`);
       if (dot) dot.classList.add('captured');
 
-      // Capture photo on first sample
       if (idx === 1) {
         capturedPhoto = FaceRecognition.capturePhoto(registerVideo);
       }
@@ -649,7 +608,6 @@
         photo: capturedPhoto
       });
 
-      // Reset form
       regName.value = '';
       regRole.value = '';
       regDailyRate.value = '';
@@ -725,7 +683,6 @@
     }
   }
 
-  // Global Edit Function
   window.editEmployee = async function (id) {
     const emp = cachedEmployees.find(e => String(e.id) === String(id));
     if (!emp) return;
@@ -788,7 +745,6 @@
     }
   });
 
-  // Global delete function
   window.deleteEmployee = async function (id) {
     if (!confirm('Tem certeza que deseja remover este colaborador?')) return;
     try {
@@ -798,10 +754,6 @@
       alert('Erro ao remover: ' + err.message);
     }
   };
-
-  // ═══════════════════════════════════
-  // RECORDS & TIMESHEET SECTION
-  // ═══════════════════════════════════
 
   let activeTimesheetEmpId = null;
   let activeTimesheetStart = '';
@@ -1040,10 +992,6 @@
     }).join('');
   }
 
-  // ═══════════════════════════════════
-  // EXPORT TIMESHEET PDF
-  // ═══════════════════════════════════
-
   async function exportTimesheetPDF() {
     if (!window.jspdf || !window.jspdf.jsPDF) {
       alert('A biblioteca de geração de PDF não pôde ser carregada. Verifique sua conexão.');
@@ -1069,7 +1017,6 @@
         return;
       }
 
-      // Title Header
       doc.setFillColor(10, 10, 15);
       doc.rect(0, 0, 210, 28, 'F');
       doc.setTextColor(255, 255, 255);
@@ -1083,7 +1030,6 @@
 
       let currentY = 36;
 
-      // Render summary info box for filtered employees
       summary.forEach(s => {
         doc.setDrawColor(99, 102, 241);
         doc.setFillColor(248, 249, 254);
@@ -1107,7 +1053,6 @@
         currentY += 36;
       });
 
-      // Render Records Table
       const tableData = records.map(r => {
         const dt = new Date(r.timestamp);
         return [
@@ -1146,10 +1091,6 @@
       alert('Erro ao gerar PDF: ' + err.message);
     }
   }
-
-  // ═══════════════════════════════════
-  // DIA DE PAGAMENTO (PAYMENT DAY LOGIC)
-  // ═══════════════════════════════════
 
   function updatePayDatesByPreset() {
     const preset = payPeriodType.value;
@@ -1544,7 +1485,6 @@
       const dashTodayRec = $('#dash-today-records');
       if (dashTodayRec) dashTodayRec.textContent = todayRecords.length;
 
-      // Render today's list
       const dashTodayList = $('#dash-today-list');
       if (dashTodayList) {
         if (todayRecords.length === 0) {
@@ -1563,7 +1503,6 @@
         }
       }
 
-      // Load month payroll estimate
       const now = new Date();
       const startOfMonth = formatDate(new Date(now.getFullYear(), now.getMonth(), 1));
       const summary = await Api.getRecordsSummary({ startDate: startOfMonth, endDate: todayStr });
@@ -1574,10 +1513,6 @@
       console.error('Dashboard error:', err);
     }
   }
-
-  // ═══════════════════════════════════
-  // FINANCEIRO SECTION
-  // ═══════════════════════════════════
 
   let finInitialized = false;
 
@@ -1695,7 +1630,6 @@
       }
     }
 
-    // Set today as default for the date field
     const finDate = $('#fin-date');
     if (finDate && !finDate.value) finDate.value = formatDate(new Date());
 
@@ -1727,7 +1661,6 @@
             if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Salvando...'; }
             await Api.createFinancialTransaction({ type, description, amount, category, date });
 
-            // Reset form fields
             if ($('#fin-description')) $('#fin-description').value = '';
             if ($('#fin-amount')) $('#fin-amount').value = '';
             if ($('#fin-category')) $('#fin-category').value = '';
@@ -1748,11 +1681,6 @@
 
     await loadFinanceiroData();
   }
-
-
-  // ═══════════════════════════════════
-  // ADMIN MODALS & LOGIC
-  // ═══════════════════════════════════
 
   function openLoginModal() {
     loginError.classList.add('hidden');
@@ -1804,7 +1732,7 @@
         }
         targetSectionAfterLogin = null;
       } else {
-        // Default admin landing page: dashboard
+        
         switchSection('dashboard');
       }
     } catch (err) {
@@ -1824,7 +1752,6 @@
     }
   });
 
-  // Change Password Modal
   function openChangePassModal() {
     passError.classList.add('hidden');
     passSuccess.classList.add('hidden');
@@ -1882,10 +1809,6 @@
     }
   });
 
-  // ═══════════════════════════════════
-  // INITIALIZATION
-  // ═══════════════════════════════════
-
   async function init() {
     updateAdminUI();
     loadLocations();
@@ -1897,7 +1820,6 @@
       initClockSection();
     }
 
-    // Load AI models non-blockingly in the background
     FaceRecognition.loadModels((msg) => {
       if (loaderText) loaderText.textContent = msg;
     }).catch(err => {

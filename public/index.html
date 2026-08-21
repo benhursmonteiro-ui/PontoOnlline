@@ -16,7 +16,7 @@
   <script src="js/vendor/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
-  <!-- Loading Overlay -->
+  
   <div id="loading-overlay" class="loading-overlay hidden">
     <div class="loader-content">
       <div class="loader-ring"></div>
@@ -25,7 +25,6 @@
     </div>
   </div>
 
-  <!-- Header -->
   <header class="header">
     <div class="header-inner">
       <div class="logo">
@@ -47,7 +46,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           <span>Bater Ponto</span>
         </button>
-        <!-- Admin: Dashboard -->
+        
         <button class="nav-btn admin-only hidden" data-section="dashboard" id="nav-dashboard">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
           <span>Dashboard</span>
@@ -93,14 +92,14 @@
     </div>
   </header>
 
-  <main class="main">    <!-- ════════ Section: Dashboard (Admin) ════════ -->
+  <main class="main">    
     <section id="section-dashboard" class="section">
       <div class="section-header">
         <h2>Dashboard Administrativo</h2>
         <p class="section-desc">Visão geral do sistema — colaboradores, registros de hoje e situação financeira</p>
       </div>
       <div class="dashboard-grid">
-        <!-- KPI Cards -->
+        
         <div class="dash-kpi-row">
           <div class="dash-kpi-card glass">
             <div class="dash-kpi-icon" style="background: rgba(99,102,241,0.15); color: #818cf8;">
@@ -140,7 +139,6 @@
           </div>
         </div>
 
-        <!-- Recent Records + Quick Actions -->
         <div class="dash-content-row">
           <div class="dash-recent glass">
             <h3 class="dash-section-title">
@@ -183,7 +181,6 @@
       </div>
     </section>
 
-    <!-- ════════ Section: Financeiro (Admin) ════════ -->
     <section id="section-financeiro" class="section">
       <div class="section-header">
         <h2>Financeiro</h2>
@@ -192,7 +189,6 @@
 
       <div class="fin-layout">
 
-        <!-- Left: Add Transaction Form -->
         <div class="fin-form-col glass">
           <h3 class="dash-section-title">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -235,10 +231,8 @@
           </form>
         </div>
 
-        <!-- Right: Summary + Table -->
         <div class="fin-main-col">
 
-          <!-- Period Filter -->
           <div class="filters glass" style="margin-bottom: var(--sp-4);">
             <div class="filter-group">
               <label for="fin-period">Período</label>
@@ -264,7 +258,6 @@
             </div>
           </div>
 
-          <!-- KPI Cards -->
           <div class="fin-kpi-row">
             <div class="fin-kpi-card fin-kpi-entrada glass">
               <div class="fin-kpi-icon">
@@ -295,7 +288,6 @@
             </div>
           </div>
 
-          <!-- Transactions Table -->
           <div class="table-wrapper glass">
             <table class="records-table">
               <thead>
@@ -316,9 +308,6 @@
         </div>
       </div>
     </section>
-
-
-    <!-- ════════ Section: Bater Ponto ════════ -->
 
     <section id="section-clock" class="section active">
       <div class="section-header">
@@ -382,7 +371,6 @@
         </div>
       </div>
 
-      <!-- Toast notification -->
       <div class="toast" id="clock-toast">
         <div class="toast-icon">✓</div>
         <div class="toast-content">
@@ -392,7 +380,6 @@
       </div>
     </section>
 
-    <!-- ════════ Section: Cadastrar Colaborador ════════ -->
     <section id="section-register" class="section">
       <div class="section-header">
         <h2>Gestão de Colaboradores</h2>
@@ -489,7 +476,6 @@
       </div>
     </section>
 
-    <!-- ════════ Section: Locais de Trabalho ════════ -->
     <section id="section-locations" class="section">
       <div class="section-header">
         <h2>Locais de Trabalho (Obras / Filiais)</h2>
@@ -523,7 +509,6 @@
       </div>
     </section>
 
-    <!-- ════════ Section: Folhas de Ponto (Registros) ════════ -->
     <section id="section-records" class="section">
       <div class="section-header">
         <h2>Folhas de Ponto & Relatórios</h2>
@@ -568,10 +553,8 @@
           </div>
         </div>
 
-        <!-- Summary Cards -->
         <div class="summary-cards" id="summary-cards"></div>
 
-        <!-- Records Table -->
         <div class="table-wrapper glass">
           <table class="records-table">
             <thead>
@@ -591,7 +574,6 @@
       </div>
     </section>
 
-    <!-- ════════ Section: Dia de Pagamento (Admin) ════════ -->
     <section id="section-pagamento" class="section">
       <div class="section-header">
         <h2>Dia de Pagamento — Fechamento de Folha</h2>
@@ -599,7 +581,7 @@
       </div>
 
       <div class="records-container">
-        <!-- Controls: Period selector & Date filters -->
+        
         <div class="filters glass">
           <div class="filter-group">
             <label for="pay-period-type">Período de Pagamento</label>
@@ -633,7 +615,6 @@
           </div>
         </div>
 
-        <!-- Summary Totals -->
         <div class="summary-cards pay-summary-cards" id="pay-summary-cards">
           <div class="summary-card">
             <div class="summary-stat-label">Total Colaboradores</div>
@@ -649,7 +630,6 @@
           </div>
         </div>
 
-        <!-- Table of Payments -->
         <div class="table-wrapper glass">
           <table class="records-table">
             <thead>
@@ -673,7 +653,6 @@
     </section>
   </main>
 
-  <!-- ════════ Modal: Login Admin ════════ -->
   <div class="modal-overlay hidden" id="modal-admin-login">
     <div class="modal-card glass animate-scale-in">
       <div class="modal-header">
@@ -707,7 +686,6 @@
     </div>
   </div>
 
-  <!-- ════════ Modal: Alterar Senha Admin ════════ -->
   <div class="modal-overlay hidden" id="modal-change-password">
     <div class="modal-card glass animate-scale-in">
       <div class="modal-header">
@@ -746,7 +724,6 @@
     </div>
   </div>
 
-  <!-- ════════ Modal: Editar Colaborador ════════ -->
   <div class="modal-overlay hidden" id="modal-edit-employee">
     <div class="modal-card modal-card-lg glass animate-scale-in">
       <div class="modal-header">
@@ -823,7 +800,6 @@
     </div>
   </div>
 
-  <!-- ════════ Modal: Folha de Ponto do Colaborador ════════ -->
   <div class="modal-overlay hidden" id="modal-employee-timesheet">
     <div class="modal-card modal-card-lg glass animate-scale-in" style="max-width: 750px;">
       <div class="modal-header">
@@ -840,10 +816,9 @@
       </div>
 
       <div class="modal-body">
-        <!-- Summary Info Box -->
+        
         <div id="sheet-emp-info-box" class="glass" style="padding: 1.25rem; border-radius: var(--radius); margin-bottom: 1.25rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);"></div>
 
-        <!-- Records Table -->
         <h4 style="margin-bottom: 0.75rem; font-size: 0.95rem; color: var(--text-secondary);">Registros de Ponto no Período</h4>
         <div class="table-wrapper glass" style="max-height: 260px; overflow-y: auto;">
           <table class="records-table">

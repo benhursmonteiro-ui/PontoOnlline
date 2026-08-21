@@ -8,26 +8,22 @@ const DB_PATH = path.join(__dirname, '..', 'data', 'ponto_facial.db');
 let db = null;
 let dbReady = null;
 
-// ── Password Hashing Helper ──
 function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
   const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
   return { hash, salt };
 }
 
-// ── Initialize Database ──
 function initDatabase() {
   if (dbReady) return dbReady;
 
   dbReady = (async () => {
     const SQL = await initSqlJs();
 
-    // Ensure data directory exists
     const dataDir = path.dirname(DB_PATH);
     if (!fs.existsSync(dataDir)) {
       fs.mkdirSync(dataDir, { recursive: true });
     }
 
-    // Load existing database file or create new
     if (fs.existsSync(DB_PATH)) {
       const fileBuffer = fs.readFileSync(DB_PATH);
       db = new SQL.Database(fileBuffer);
@@ -35,7 +31,6 @@ function initDatabase() {
       db = new SQL.Database();
     }
 
-    // Create schema
     db.run(`
       CREATE TABLE IF NOT EXISTS employees (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -67,7 +62,6 @@ function initDatabase() {
       )
     `);
 
-    // Create locations table
     db.run(`
       CREATE TABLE IF NOT EXISTS locations (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -92,7 +86,6 @@ function initDatabase() {
     db.run(`CREATE INDEX IF NOT EXISTS idx_records_employee ON time_records(employee_id)`);
     db.run(`CREATE INDEX IF NOT EXISTS idx_records_timestamp ON time_records(timestamp)`);
 
-    // Migrations for missing columns
     const employeeCols = queryAll("PRAGMA table_info(employees)").map(c => c.name);
     if (!employeeCols.includes('daily_rate')) {
       db.run("ALTER TABLE employees ADD COLUMN daily_rate REAL DEFAULT 0.0");
@@ -115,14 +108,12 @@ function initDatabase() {
       db.run("ALTER TABLE time_records ADD COLUMN location_id INTEGER DEFAULT NULL");
     }
 
-    // Seed default admin if none exists
     const countRes = queryOne('SELECT COUNT(*) as count FROM admins');
     if (!countRes || countRes.count === 0) {
       const { hash, salt } = hashPassword('admin123');
       runSql('INSERT INTO admins (username, password_hash, salt) VALUES (?, ?, ?)', ['admin', hash, salt]);
     }
 
-    // Seed default location if empty
     const locCount = queryOne('SELECT COUNT(*) as count FROM locations');
     if (!locCount || locCount.count === 0) {
       runSql("INSERT INTO locations (name, address) VALUES (?, ?)", ['Sede Principal', 'Matriz']);
@@ -135,7 +126,6 @@ function initDatabase() {
   return dbReady;
 }
 
-// ── Persist to file ──
 function persist() {
   if (!db) return;
   const data = db.export();
@@ -143,7 +133,6 @@ function persist() {
   fs.writeFileSync(DB_PATH, buffer);
 }
 
-// ── Helper: run query and return rows as objects ──
 function queryAll(sql, params = []) {
   const stmt = db.prepare(sql);
   stmt.bind(params);
@@ -170,8 +159,6 @@ function runSql(sql, params = []) {
     changes
   };
 }
-
-// ── Location Operations ──
 
 function createLocation({ name, address }) {
   const result = runSql(
@@ -200,8 +187,6 @@ function deleteLocation(id) {
   runSql('UPDATE employees SET location_id = NULL WHERE location_id = ?', [id]);
   return runSql('DELETE FROM locations WHERE id = ?', [id]);
 }
-
-// ── Employee Operations ──
 
 function createEmployee({ name, role, dailyRate, paymentMethod, pixKeyType, pixKey, locationId, faceDescriptors, photo }) {
   const result = runSql(
@@ -288,8 +273,6 @@ function deleteEmployee(id) {
   return runSql('DELETE FROM employees WHERE id = ?', [id]);
 }
 
-// ── Time Record Operations ──
-
 function createRecord({ employeeId, locationId, timestamp, type }) {
   const emp = getEmployeeById(employeeId);
   const locId = locationId || emp?.location_id || null;
@@ -369,7 +352,7 @@ function getRecords({ employeeId, locationId, startDate, endDate, limit = 100 })
 }
 
 function getRecordsSummary({ employeeId, locationId, startDate, endDate }) {
-  // 1. Fetch all employees matching filters
+  
   let empSql = `
     SELECT e.id as employee_id, e.name as employee_name, e.role, e.daily_rate, e.payment_method, e.pix_key_type, e.pix_key,
            l.name as location_name
@@ -408,7 +391,6 @@ function getRecordsSummary({ employeeId, locationId, startDate, endDate }) {
     };
   }
 
-  // 2. Fetch records in period
   let recSql = `
     SELECT r.employee_id, r.type, r.timestamp
     FROM time_records r
@@ -450,7 +432,7 @@ function getRecordsSummary({ employeeId, locationId, startDate, endDate }) {
         if (diffMinutes > 0 && diffMinutes <= 24 * 60) {
           totalMinutes += diffMinutes;
         }
-        i++; // skip saida
+        i++; 
       }
     }
     emp.total_minutes = Math.round(totalMinutes);
@@ -461,7 +443,6 @@ function getRecordsSummary({ employeeId, locationId, startDate, endDate }) {
     const dailyRate = emp.daily_rate || 0;
     const hourlyRate = dailyRate > 0 ? (dailyRate / 8) : 0;
 
-    // Calculate based on actual hours worked: (daily_rate / 8) × total_hours
     const totalEarnings = hourlyRate * hoursDecimal;
 
     emp.hourly_rate = hourlyRate.toFixed(2);
@@ -475,8 +456,6 @@ function getRecordsSummary({ employeeId, locationId, startDate, endDate }) {
 
   return Object.values(summaryMap);
 }
-
-// ── Admin Operations ──
 
 function verifyAdminLogin(username, password) {
   const admin = queryOne('SELECT * FROM admins WHERE username = ?', [username]);
@@ -508,7 +487,6 @@ function closeDb() {
   }
 }
 
-// ── Financial Transactions ──
 function createFinancialTransaction({ type, description, amount, category, date }) {
   runSql(
     `INSERT INTO financial_transactions (type, description, amount, category, date) VALUES (?, ?, ?, ?, ?)`,

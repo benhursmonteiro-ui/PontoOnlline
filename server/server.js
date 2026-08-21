@@ -20,14 +20,10 @@ function getLocalIp() {
   return 'localhost';
 }
 
-// ── Middleware ──
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// ── Location Routes ──
-
-// List all locations
 app.get('/api/locations', (req, res) => {
   try {
     const locations = db.getAllLocations();
@@ -37,7 +33,6 @@ app.get('/api/locations', (req, res) => {
   }
 });
 
-// Create location
 app.post('/api/locations', (req, res) => {
   try {
     const { name, address } = req.body;
@@ -49,7 +44,6 @@ app.post('/api/locations', (req, res) => {
   }
 });
 
-// Delete location
 app.delete('/api/locations/:id', (req, res) => {
   try {
     db.deleteLocation(req.params.id);
@@ -59,9 +53,6 @@ app.delete('/api/locations/:id', (req, res) => {
   }
 });
 
-// ── Employee Routes ──
-
-// List all employees
 app.get('/api/employees', (req, res) => {
   try {
     const employees = db.getAllEmployees();
@@ -71,7 +62,6 @@ app.get('/api/employees', (req, res) => {
   }
 });
 
-// Get single employee
 app.get('/api/employees/:id', (req, res) => {
   try {
     const employee = db.getEmployeeById(req.params.id);
@@ -82,7 +72,6 @@ app.get('/api/employees/:id', (req, res) => {
   }
 });
 
-// Create employee
 app.post('/api/employees', (req, res) => {
   try {
     const { name, role, dailyRate, paymentMethod, pixKeyType, pixKey, locationId, faceDescriptors, photo } = req.body;
@@ -98,7 +87,6 @@ app.post('/api/employees', (req, res) => {
   }
 });
 
-// Update employee
 app.put('/api/employees/:id', (req, res) => {
   try {
     const { name, role, dailyRate, paymentMethod, pixKeyType, pixKey, locationId, photo } = req.body;
@@ -111,7 +99,6 @@ app.put('/api/employees/:id', (req, res) => {
   }
 });
 
-// Delete employee
 app.delete('/api/employees/:id', (req, res) => {
   try {
     const result = db.deleteEmployee(req.params.id);
@@ -122,7 +109,6 @@ app.delete('/api/employees/:id', (req, res) => {
   }
 });
 
-// Get all face descriptors (for client-side matching)
 app.get('/api/descriptors', (req, res) => {
   try {
     const descriptors = db.getAllDescriptors();
@@ -132,9 +118,6 @@ app.get('/api/descriptors', (req, res) => {
   }
 });
 
-// ── Time Record Routes ──
-
-// Create time record
 app.post('/api/records', (req, res) => {
   try {
     const { employeeId, locationId, timestamp, type } = req.body;
@@ -147,7 +130,6 @@ app.post('/api/records', (req, res) => {
   }
 });
 
-// List records with filters
 app.get('/api/records', (req, res) => {
   try {
     const { employee_id, location_id, start_date, end_date, limit } = req.query;
@@ -164,7 +146,6 @@ app.get('/api/records', (req, res) => {
   }
 });
 
-// Records summary (hours per employee & financial totals)
 app.get('/api/records/summary', (req, res) => {
   try {
     const { employee_id, location_id, start_date, end_date } = req.query;
@@ -180,9 +161,6 @@ app.get('/api/records/summary', (req, res) => {
   }
 });
 
-// ── Admin Routes ──
-
-// Admin login
 app.post('/api/admin/login', (req, res) => {
   try {
     const { username, password } = req.body;
@@ -205,7 +183,6 @@ app.post('/api/admin/login', (req, res) => {
   }
 });
 
-// Change admin password
 app.post('/api/admin/change-password', (req, res) => {
   try {
     const { username, currentPassword, newPassword } = req.body;
@@ -223,9 +200,6 @@ app.post('/api/admin/change-password', (req, res) => {
   }
 });
 
-// ── Financial Transaction Routes ──
-
-// Get summary (totals + list)
 app.get('/api/financial/summary', (req, res) => {
   try {
     const { startDate, endDate } = req.query;
@@ -236,7 +210,6 @@ app.get('/api/financial/summary', (req, res) => {
   }
 });
 
-// Get transactions list
 app.get('/api/financial/transactions', (req, res) => {
   try {
     const { startDate, endDate } = req.query;
@@ -247,7 +220,6 @@ app.get('/api/financial/transactions', (req, res) => {
   }
 });
 
-// Create transaction
 app.post('/api/financial/transactions', (req, res) => {
   try {
     const { type, description, amount, category, date } = req.body;
@@ -264,7 +236,6 @@ app.post('/api/financial/transactions', (req, res) => {
   }
 });
 
-// Delete transaction
 app.delete('/api/financial/transactions/:id', (req, res) => {
   try {
     db.deleteFinancialTransaction(req.params.id);
@@ -274,12 +245,10 @@ app.delete('/api/financial/transactions/:id', (req, res) => {
   }
 });
 
-// ── SPA fallback ──
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
-// ── Start (async — wait for DB init) ──
 (async () => {
   try {
     await db.initDatabase();
@@ -317,7 +286,6 @@ app.get('*', (req, res) => {
   }
 })();
 
-// Graceful shutdown
 process.on('SIGINT', () => {
   db.closeDb();
   process.exit(0);

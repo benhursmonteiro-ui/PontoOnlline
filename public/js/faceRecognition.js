@@ -1,7 +1,3 @@
-/* ═══════════════════════════════════════════════
-   Face Recognition Module
-   Uses @vladmandic/face-api for detection & matching
-   ═══════════════════════════════════════════════ */
 
 const FaceRecognition = (() => {
   const MODEL_URL = '/models/';
@@ -9,7 +5,6 @@ const FaceRecognition = (() => {
   let modelsLoaded = false;
   let currentStream = null;
 
-  // ── Load Models ──
   async function loadModels(onProgress) {
     if (modelsLoaded) return;
 
@@ -24,7 +19,6 @@ const FaceRecognition = (() => {
     if (onProgress) onProgress('Modelos carregados!');
   }
 
-  // ── Camera Control ──
   async function startCamera(videoElement) {
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -32,7 +26,6 @@ const FaceRecognition = (() => {
         return false;
       }
 
-      // Ensure video element properties for inline autoplay
       videoElement.setAttribute('autoplay', '');
       videoElement.setAttribute('muted', '');
       videoElement.setAttribute('playsinline', '');
@@ -58,7 +51,7 @@ const FaceRecognition = (() => {
           videoElement.onloadeddata = () => {
             videoElement.play().catch(console.warn).finally(resolve);
           };
-          // Timeout safety: resolve anyway after 1s
+          
           setTimeout(resolve, 1000);
         }
       });
@@ -81,7 +74,6 @@ const FaceRecognition = (() => {
     }
   }
 
-  // ── Face Detection Options ──
   function getDetectionOptions() {
     return new faceapi.TinyFaceDetectorOptions({
       inputSize: 320,
@@ -89,7 +81,6 @@ const FaceRecognition = (() => {
     });
   }
 
-  // ── Capture Face Descriptor (for registration) ──
   async function captureFaceDescriptor(videoElement) {
     if (!modelsLoaded) {
       await loadModels();
@@ -114,7 +105,6 @@ const FaceRecognition = (() => {
     };
   }
 
-  // ── Capture Photo from Video ──
   function capturePhoto(videoElement) {
     if (!videoElement || !videoElement.videoWidth || !videoElement.videoHeight) return null;
     const canvas = document.createElement('canvas');
@@ -125,7 +115,6 @@ const FaceRecognition = (() => {
     return canvas.toDataURL('image/jpeg', 0.8);
   }
 
-  // ── Draw Bounding Box for visual feedback ──
   function drawBox(videoElement, canvasElement, box, label = 'Amostra Capturada', isSuccess = true) {
     if (!videoElement || !canvasElement || !box) return;
     const displaySize = {
@@ -156,7 +145,6 @@ const FaceRecognition = (() => {
     }, 2000);
   }
 
-  // ── Create Face Matcher from stored descriptors ──
   function createMatcher(employeeDescriptors, threshold = 0.5) {
     if (!employeeDescriptors || employeeDescriptors.length === 0) return null;
 
@@ -171,11 +159,10 @@ const FaceRecognition = (() => {
     return new faceapi.FaceMatcher(labeledDescriptors, threshold);
   }
 
-  // ── Continuous Detection Loop (for clock-in) ──
   function startDetectionLoop(videoElement, canvasElement, matcher, onMatch, onNoFace) {
     let running = true;
     let lastMatchTime = 0;
-    const COOLDOWN = 5000; // 5s cooldown between registrations
+    const COOLDOWN = 5000; 
 
     const canvas = canvasElement;
 
@@ -187,7 +174,6 @@ const FaceRecognition = (() => {
         height: videoElement.videoHeight
       };
 
-      // Set canvas dimensions
       faceapi.matchDimensions(canvas, displaySize);
 
       try {
@@ -198,7 +184,6 @@ const FaceRecognition = (() => {
 
         const resized = faceapi.resizeResults(detections, displaySize);
 
-        // Clear canvas
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -208,7 +193,6 @@ const FaceRecognition = (() => {
           return;
         }
 
-        // Draw detections
         for (const det of resized) {
           const box = det.detection.box;
 
@@ -217,12 +201,10 @@ const FaceRecognition = (() => {
             const isKnown = match.label !== 'unknown';
             const now = Date.now();
 
-            // Draw box
             ctx.strokeStyle = isKnown ? '#22c55e' : '#ef4444';
             ctx.lineWidth = 3;
             ctx.strokeRect(box.x, box.y, box.width, box.height);
 
-            // Draw label
             const label = isKnown ? match.label.split('::')[1] : 'Desconhecido';
             const confidence = isKnown ? `${((1 - match.distance) * 100).toFixed(0)}%` : '';
 
@@ -234,7 +216,6 @@ const FaceRecognition = (() => {
             ctx.font = 'bold 14px Inter, sans-serif';
             ctx.fillText(`${label} ${confidence}`, box.x + 6, box.y - 8);
 
-            // Trigger match callback with cooldown
             if (isKnown && (now - lastMatchTime > COOLDOWN)) {
               lastMatchTime = now;
               const [id, name] = match.label.split('::');
@@ -245,7 +226,7 @@ const FaceRecognition = (() => {
               });
             }
           } else {
-            // No matcher — just draw generic box
+            
             ctx.strokeStyle = '#6366f1';
             ctx.lineWidth = 3;
             ctx.strokeRect(box.x, box.y, box.width, box.height);
@@ -266,7 +247,6 @@ const FaceRecognition = (() => {
     };
   }
 
-  // ── Public API ──
   return {
     loadModels,
     startCamera,
